@@ -1,0 +1,26 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "OGNAnalyser Console Application",
+  "authors": [ "SilvanGacond" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+
+  "compilationOptions": {
+    "emitEntryPoint": true
+  },
+
+  "dependencies": {
+    "Microsoft.Extensions.DependencyInjection": "1.0.0-rc1-final",
+    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
+    "OGNAnalyserCore": ""
+  },
+
+  "commands": {
+    "OGNAnalyser": "OGNAnalyser"
+  },
+
+  "frameworks": {
+    "dnx452": { }
+  }
+}
