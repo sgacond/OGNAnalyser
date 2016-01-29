@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OGNAnalyserCore.Models
+namespace OGNAnalyser.Core.Models
 {
     /// <summary>
     /// Informational beacon ("comment").
@@ -12,11 +12,6 @@ namespace OGNAnalyserCore.Models
     {
         public override BeaconType BeaconType { get { return BeaconType.Informational; } }
 
-        public string InformationalData { get; private set; }
-
-        protected override void parseConcretePart(string concretePart)
-        {
-            InformationalData = concretePart;
-        }
+        public string InformationalData { get; internal set; }
     }
 }

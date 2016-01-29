@@ -4,7 +4,7 @@ using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Framework.DependencyInjection;
 using NLog;
 using System.Net.Sockets;
-using OGNAnalyserCore.APRS;
+using OGNAnalyserCore.Comm;
 
 namespace OGNAnalyserCore
 {
@@ -14,7 +14,7 @@ namespace OGNAnalyserCore
 
         public OGNAnalyser()
         {
-            comm = new APRSComm("glidern1.glidernet.org", 14580, "sgtest", 47.170869f, 9.039742f, 50);
+            comm = new APRSComm("glidern1.glidernet.org", 14580, "sgtest", 47.170869f, 9.039742f, 150);
         }
 
         public void Dispose()

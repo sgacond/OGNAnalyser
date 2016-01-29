@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using static System.FormattableString;
 
-namespace OGNAnalyserCore.APRS
+namespace OGNAnalyserCore.Comm
 {
     public class APRSComm : IDisposable
     {

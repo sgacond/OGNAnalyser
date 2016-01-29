@@ -10,9 +10,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		global.json = global.json
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyserLauncher", "src\OGNAnalyserLauncher\OGNAnalyserLauncher.xproj", "{1958A86F-0469-4A10-8B0C-B2C43D498DF2}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyser.Launcher", "src\OGNAnalyser.Launcher\OGNAnalyser.Launcher.xproj", "{1958A86F-0469-4A10-8B0C-B2C43D498DF2}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyserCore", "src\OGNAnalyserCore\OGNAnalyserCore.xproj", "{20897E98-A0E7-41E6-92A6-3741C73E402A}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyser.Core", "src\OGNAnalyser.Core\OGNAnalyser.Core.xproj", "{20897E98-A0E7-41E6-92A6-3741C73E402A}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyser.Tests", "src\OGNAnalyser.Tests\OGNAnalyser.Tests.xproj", "{B50E99E3-B601-4469-AE26-5CDC28E9FB37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,6 +30,10 @@ Global
 		{20897E98-A0E7-41E6-92A6-3741C73E402A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20897E98-A0E7-41E6-92A6-3741C73E402A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20897E98-A0E7-41E6-92A6-3741C73E402A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B50E99E3-B601-4469-AE26-5CDC28E9FB37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B50E99E3-B601-4469-AE26-5CDC28E9FB37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B50E99E3-B601-4469-AE26-5CDC28E9FB37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B50E99E3-B601-4469-AE26-5CDC28E9FB37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -35,5 +41,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1958A86F-0469-4A10-8B0C-B2C43D498DF2} = {BF4D455A-283F-447A-B919-7590F1C62B38}
 		{20897E98-A0E7-41E6-92A6-3741C73E402A} = {BF4D455A-283F-447A-B919-7590F1C62B38}
+		{B50E99E3-B601-4469-AE26-5CDC28E9FB37} = {BF4D455A-283F-447A-B919-7590F1C62B38}
 	EndGlobalSection
 EndGlobal
