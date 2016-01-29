@@ -5,13 +5,18 @@ using System.Threading.Tasks;
 
 namespace OGNAnalyserCore.Models
 {
+    /// <summary>
+    /// Informational beacon ("comment").
+    /// </summary>
     public class InformationalBeacon : Beacon
     {
         public override BeaconType BeaconType { get { return BeaconType.Informational; } }
 
-        internal override void Parse(string receivedLine)
+        public string InformationalData { get; private set; }
+
+        protected override void parseConcretePart(string concretePart)
         {
-            throw new NotImplementedException();
+            InformationalData = concretePart;
         }
     }
 }
