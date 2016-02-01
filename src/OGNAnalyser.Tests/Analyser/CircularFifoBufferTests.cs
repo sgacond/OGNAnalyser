@@ -7,12 +7,12 @@ using Xunit;
 
 namespace OGNAnalyser.Tests.Analyser
 {
-    public class CircularBufferTests
+    public class CircularFifoBufferTests
     {
         [Fact]
         public void CapacityOk()
         {
-            var buf = new CircularBuffer<int>(10);
+            var buf = new CircularFifoBuffer<int>(10);
             buf.Enqueue(1);
             Assert.Equal(10, buf.Capacity);
         }
@@ -20,7 +20,7 @@ namespace OGNAnalyser.Tests.Analyser
         [Fact]
         public void LengthOkUnderCapacity()
         {
-            var buf = new CircularBuffer<int>(10);
+            var buf = new CircularFifoBuffer<int>(10);
             buf.Enqueue(1);
             buf.Enqueue(2);
             buf.Enqueue(3);
@@ -31,7 +31,7 @@ namespace OGNAnalyser.Tests.Analyser
         [Fact]
         public void LengthOkOverCapacity()
         {
-            var buf = new CircularBuffer<int>(10);
+            var buf = new CircularFifoBuffer<int>(10);
             buf.Enqueue(1);
             buf.Enqueue(2);
             buf.Enqueue(3);
@@ -50,18 +50,18 @@ namespace OGNAnalyser.Tests.Analyser
         [Fact]
         public void OrderOkUnderCapacity()
         {
-            var buf = new CircularBuffer<int>(10);
+            var buf = new CircularFifoBuffer<int>(10);
             buf.Enqueue(1);
             buf.Enqueue(2);
             buf.Enqueue(3);
-            Assert.Equal(1, buf.First());
-            Assert.Equal(3, buf.Last());
+            Assert.Equal(3, buf.First());
+            Assert.Equal(1, buf.Last());
         }
 
         [Fact]
         public void OrderOkOverCapacity()
         {
-            var buf = new CircularBuffer<int>(10);
+            var buf = new CircularFifoBuffer<int>(10);
             buf.Enqueue(1);
             buf.Enqueue(2);
             buf.Enqueue(3);
@@ -74,8 +74,8 @@ namespace OGNAnalyser.Tests.Analyser
             buf.Enqueue(10);
             buf.Enqueue(11);
             buf.Enqueue(12);
-            Assert.Equal(3, buf.First());
-            Assert.Equal(12, buf.Last());
+            Assert.Equal(12, buf.First());
+            Assert.Equal(3, buf.Last());
         }
 
     }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OGNAnalyser.Core.Util
 {
-    public class CircularBuffer<T> : IEnumerable<T>
+    public class CircularFifoBuffer<T> : IEnumerable<T>
     {
         T[] buffer;
         int head;
@@ -15,6 +15,7 @@ namespace OGNAnalyser.Core.Util
         object lockObj = new object();
 
         private int nextPosition(int position) => (position + 1) % Capacity;
+        private int prevPosition(int position) => (position == 0) ? Capacity - 1 : position - 1;
 
         public int Length { get; private set; }
         public int Capacity { get; private set; }
@@ -23,7 +24,7 @@ namespace OGNAnalyser.Core.Util
 
         public bool Full { get { return Length == Capacity; } }
         
-        public CircularBuffer(int bufferSize)
+        public CircularFifoBuffer(int bufferSize)
         {
             buffer = new T[bufferSize];
             this.Capacity = bufferSize;
@@ -36,8 +37,8 @@ namespace OGNAnalyser.Core.Util
             {
                 if (Empty) throw new InvalidOperationException("Queue exhausted");
 
-                T dequeued = buffer[tail];
-                tail = nextPosition(tail);
+                T dequeued = buffer[head];
+                head = prevPosition(head);
                 Length--;
                 return dequeued;
             }
@@ -58,12 +59,12 @@ namespace OGNAnalyser.Core.Util
 
         public IEnumerator<T> GetEnumerator()
         {
-            var i = tail;
+            var i = head;
             do
             {
                 yield return buffer[i];
-                i = nextPosition(i);
-            } while (i != nextPosition(head));
+                i = prevPosition(i);
+            } while (i != prevPosition(tail));
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

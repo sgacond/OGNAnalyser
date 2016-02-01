@@ -13,7 +13,7 @@ namespace OGNAnalyserCore
         private const double bufferAnalysisTimerIntervalMillis = 5000;
 
         private APRSClient client;
-        private Dictionary<ulong, CircularBuffer<AircraftBeacon>> aircraftBuffer = new Dictionary<ulong, CircularBuffer<AircraftBeacon>>();
+        private Dictionary<ulong, CircularFifoBuffer<AircraftBeacon>> aircraftBuffer = new Dictionary<ulong, CircularFifoBuffer<AircraftBeacon>>();
         private Timer bufferAnalysisTimer = new Timer(bufferAnalysisTimerIntervalMillis);
 
         public OGNAnalyser()
@@ -28,7 +28,7 @@ namespace OGNAnalyserCore
             client.AircraftBeaconReceived += b => 
             {
                 if (!aircraftBuffer.ContainsKey(b.AircraftId))
-                    aircraftBuffer.Add(b.AircraftId, new CircularBuffer<AircraftBeacon>(aircraftBuffersCapacity));
+                    aircraftBuffer.Add(b.AircraftId, new CircularFifoBuffer<AircraftBeacon>(aircraftBuffersCapacity));
 
                 aircraftBuffer[b.AircraftId].Enqueue(b);
             };
