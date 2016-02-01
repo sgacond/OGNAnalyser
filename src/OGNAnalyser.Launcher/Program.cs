@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Config;
 
-namespace OGNAnalyser
+namespace OGNAnalyser.Launcher
 {
     public class Program
     {

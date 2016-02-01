@@ -1,6 +1,10 @@
 ﻿using OGNAnalyser.Client.Models;
 using OGNAnalyser.Client.Parser;
+using OGNAnalyser.Client.Util;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Timers;
@@ -14,6 +18,7 @@ namespace OGNAnalyser.Client
         private const string swVersion = "0.1";
         private const double keepAlivePingMillis = 240000;
         private const int bufferSize = 256;
+        private const string expectedLineEnding = "\r\n";
 
         public readonly byte[] buffer = new byte[bufferSize];
 
@@ -25,6 +30,8 @@ namespace OGNAnalyser.Client
         private float filterLat;
         private float filterLon;
         private float filterRadius;
+        private string halfReceivedLine = null;
+        private object receiverLock = new object();
 
         public event Action<Beacon> BeaconReceived;
         public event Action<AircraftBeacon> AircraftBeaconReceived;
@@ -44,7 +51,7 @@ namespace OGNAnalyser.Client
 
             if (socket != null)
                 Dispose();
-            
+
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.Connect(server, port);
 
@@ -53,7 +60,7 @@ namespace OGNAnalyser.Client
             socket.Send(Encoding.ASCII.GetBytes(Invariant($"user {username} pass {password} vers {swInfo} {swVersion} filter r/{filterLat:#.######}/{filterLon:#.######}/{filterRadius:#}\n")));
 
             keepAlivePingTimer = new Timer(keepAlivePingMillis);
-            keepAlivePingTimer.Elapsed += (s, e) => 
+            keepAlivePingTimer.Elapsed += (s, e) =>
             {
                 if (socket != null)
                     socket.Send(Encoding.ASCII.GetBytes($"# {swInfo} - {swVersion}"));
@@ -77,36 +84,52 @@ namespace OGNAnalyser.Client
             if (!socket.Connected)
                 return;
 
-            // Read data from the remote device.
-            var bytesRead = socket.EndReceive(ar);
-            socket.BeginReceive(buffer, 0, bufferSize, 0, new AsyncCallback(receivedCallback), null);
-
-            if (bytesRead > 0)
+            lock (receiverLock)
             {
-                // There might be more data, so store the data received so far.
-                var data = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                // Read data from the remote device.
+                var bytesRead = socket.EndReceive(ar);
+                socket.BeginReceive(buffer, 0, bufferSize, 0, new AsyncCallback(receivedCallback), null);
 
-                try
+                if (bytesRead > 0)
                 {
-                    var beacon = BeaconParser.ParseBeacon(data);
+                    // There might be more data, so store the data received so far.
+                    var data = Encoding.ASCII.GetString(buffer, 0, bytesRead);
 
-                    if (BeaconReceived != null)
-                        BeaconReceived(beacon);
+                    var lines = data.SplitKeepDelim(expectedLineEnding).ToArray();
 
-                    if (beacon.BeaconType == BeaconType.Aircraft && AircraftBeaconReceived != null)
-                        AircraftBeaconReceived((AircraftBeacon)beacon);
+                    if (halfReceivedLine != null && lines.Any())
+                    {
+                        lines[0] = halfReceivedLine + lines[0];
+                        halfReceivedLine = null;
+                    }
 
-                    else if (beacon.BeaconType == BeaconType.Receiver && BeaconReceived != null)
-                        ReceiverBeaconReceived((ReceiverBeacon)beacon);
-                }
-                catch(BeaconParserException e)
-                {
-                    Console.Error.WriteLine($"Problem matching line: {e.StringPartParsing}");
+                    foreach (var line in lines)
+                    {
+                        if (line.EndsWith(expectedLineEnding))
+                        {
+                            try
+                            {
+                                var beacon = BeaconParser.ParseBeacon(line.TrimEnd('\r', '\n'));
+
+                                if (BeaconReceived != null)
+                                    BeaconReceived(beacon);
+
+                                if (beacon.BeaconType == BeaconType.Aircraft && AircraftBeaconReceived != null)
+                                    AircraftBeaconReceived((AircraftBeacon)beacon);
+
+                                else if (beacon.BeaconType == BeaconType.Receiver && BeaconReceived != null)
+                                    ReceiverBeaconReceived((ReceiverBeacon)beacon);
+                            }
+                            catch (BeaconParserException e)
+                            {
+                                Console.Error.WriteLine($"Problem matching line: {e.StringPartParsing}");
+                            }
+                        }
+                        else
+                            halfReceivedLine = line;
+                    }
                 }
             }
         }
-
-
-        //public event EventHandler<PacketInfoEventArgs> PacketReceived;
     }
 }
