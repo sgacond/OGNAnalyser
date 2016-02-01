@@ -1,9 +1,6 @@
-﻿using OGNAnalyser.Core.Parser;
-using OGNAnalyser.Core.Models;
+﻿using OGNAnalyser.Client.Parser;
+using OGNAnalyser.Client.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace OGNAnalyser.Tests.APRS
@@ -20,13 +17,16 @@ namespace OGNAnalyser.Tests.APRS
         [InlineData("AbtwilSG>APRS,TCPIP*,qAC,GLIDERN2:/075629h4725.20NI00918.58E&000/000/A=002234 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB")]
         [InlineData("Niederurn>APRS,TCPIP*,qAC,GLIDERN1:/075634h4707.48NI00903.33E&000/000/A=002821 v0.2.4.ARM CPU:0.7 RAM:774.5/972.2MB NTP:0.6ms/-8.0ppm +32.6C RF:+0.77dB")]
         [InlineData("EDNE>APRS,TCPIP*,qAC,GLIDERN2:/075642h4820.54NI00954.83E&000/000/A=001588 v0.2.4.RPI-GPU CPU:1.0 RAM:194.7/455.7MB NTP:12.1ms/-9.3ppm +48.7C RF:+2.46dB")]
+        [InlineData("BachtelN>APRS,TCPIP*,qAC,GIGA01:/125043h4716.85NI00852.79E&/A=002486 v0.2.2 CPU:0.9 RAM:273.0/456.5MB NTP:0.6ms/-11.6ppm +40.1C RF:+13.71dB")]
         // aircraft
         [InlineData("ICA4B43C0>APRS,qAS,SoloStdby:/075618h4656.87N/00711.99EX331/118/A=004946 !W67! id0D4B43C0 -039fpm +0.0rot 8.0dB 0e +1.1kHz gps2x3")]
         [InlineData("FLRDDA617>APRS,qAS,Rigi:/075620h4700.13N/00819.58EX332/129/A=002460 !W87! id0EDDA617 +238fpm +0.1rot 10.0dB 1e -1.2kHz gps3x4")]
         [InlineData("FLRDDA617>APRS,qAS,Rigi:/075623h4700.23N/00819.51EX332/128/A=002476 !W23! id0EDDA617 +317fpm +0.1rot 11.5dB 0e -1.6kHz gps3x4")]
         [InlineData("ICA4B43C0>APRS,qAS,LSTBSE:/075624h4657.04N/00711.85EX331/119/A=004943 !W85! id0D4B43C0 -039fpm +0.0rot 9.8dB 0e +2.3kHz gps2x3")]
         [InlineData("FLRDF0A52>APRS,qAS,LSTB:/075625h4658.70N/00707.78Ez180/000/A=001404 !W34! id02DF0A52 -058fpm +0.0rot 54.5dB 0e +31.6kHz gps9x15 s6.00 h43")]
-
+        [InlineData("FLRDD0525>APRS,qAS,Rigi:/125048h4658.64N/00844.88E'282/067/A=002732 !W12! id06DD0525 +1307fpm +0.1rot 7.2dB 0e +6.3kHz gps3x4")]
+        [InlineData("FLRDD0525>APRS,qAS,Rigi:/125144h4659.38N/00843.74E'027/076/A=004097 !W65! id06DD0525 +1663fpm +0.2rot 8.8dB 0e +6.0kHz gps4x5")]
+        [InlineData("FLRDD0525>APRS,qAS,LSZKWest:/130334h4719.58N/00842.57E'315/100/A=002916 id06DD0525 -118fpm +0.0rot 15.5dB 0e -12.0kHz gps3x3")]
         public void ParserDoesNotCrash(string receivedLine)
         {
             // Assert.DoesNotThrow not available in xunit.
@@ -103,11 +103,41 @@ namespace OGNAnalyser.Tests.APRS
         [Fact]
         public void AircraftParser()
         {
-            var beacon = BeaconParser.ParseBeacon("FLRDF0A52>APRS,qAS,LSTB:/064314h4658.69N/00707.77Ez000/000/A=001374 !W96! id02DF0A52 +000fpm +0.0rot 54.2dB 0e -5.0kHz gps11x18");
+            var beacon = BeaconParser.ParseBeacon("FLRDF0A52>APRS,qAS,LSTB:/064314h4658.69N/00707.77Ez000/000/A=000840 !W96! id02DF0A52 +110fpm +1.2rot 54.2dB 1e -5.1kHz gps11x18");
             Assert.IsAssignableFrom<AircraftBeacon>(beacon);
             var acftBecon = (AircraftBeacon)beacon;
 
-            
+            Assert.Equal(46.58699f, acftBecon.PositionLatDegrees); // 4658.69 1/100th Minutes in degrees + .00009 (!W96!)
+            Assert.Equal(7.07776f, acftBecon.PositionLonDegrees);  // 707.77 1/100th Minutes in degrees + .00006 (!W96!)
+            Assert.True(0x02DF0A52 == acftBecon.AircraftId); // id02DF0A52
+            Assert.Equal(256, acftBecon.PositionAltitudeMeters);  // 840 feet in meters
+            Assert.Equal(0.56f, acftBecon.ClimbRateMetersPerSecond); // 110fpm in m/s
+            Assert.Equal(1.2f, acftBecon.RotationRateHalfTurnPerTwoMins); // +1.2rot
+            Assert.Equal(54.2f, acftBecon.SignalNoiseRatioDb); // 54.2dB
+            Assert.Equal(1, acftBecon.TransmissionErrorsCorrected); // 1e
+            Assert.Equal(-5.1f, acftBecon.CenterFrequencyOffsetKhz); // -5.1kHz
+            Assert.Equal(11, acftBecon.GpsSatellitesVisible); // gps11x18
+            Assert.Equal(18, acftBecon.GpsSatelliteChannelsAvailable); // gps11x18
+        }
+
+        [Fact]
+        public void AircraftParserNegativeRotationRate()
+        {
+            var beacon = BeaconParser.ParseBeacon("FLRDF0A52>APRS,qAS,LSTB:/064314h4658.69N/00707.77Ez000/000/A=000840 !W96! id02DF0A52 +110fpm -1.2rot 54.2dB 0e -5.0kHz gps11x18");
+            Assert.IsAssignableFrom<AircraftBeacon>(beacon);
+            var acftBecon = (AircraftBeacon)beacon;
+
+            Assert.Equal(-1.2f, acftBecon.RotationRateHalfTurnPerTwoMins); // -1.2rot
+        }
+
+        [Fact]
+        public void AircraftParserNegativeClimbRate()
+        {
+            var beacon = BeaconParser.ParseBeacon("FLRDF0A52>APRS,qAS,LSTB:/064314h4658.69N/00707.77Ez000/000/A=000840 !W96! id02DF0A52 -110fpm -1.2rot 54.2dB 0e -5.0kHz gps11x18");
+            Assert.IsAssignableFrom<AircraftBeacon>(beacon);
+            var acftBecon = (AircraftBeacon)beacon;
+
+            Assert.Equal(-0.56f, acftBecon.ClimbRateMetersPerSecond); // -110fpm in m/s
         }
     }
 }

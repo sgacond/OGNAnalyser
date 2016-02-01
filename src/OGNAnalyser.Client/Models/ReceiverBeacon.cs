@@ -1,10 +1,10 @@
-﻿using OGNAnalyser.Core.Models;
+﻿using OGNAnalyser.Client.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OGNAnalyser.Core.Models
+namespace OGNAnalyser.Client.Models
 {
     /// <summary>
     /// Receiver beacon. Parsed from APRS string.

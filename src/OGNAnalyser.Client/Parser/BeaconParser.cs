@@ -1,18 +1,15 @@
-﻿using OGNAnalyser.Core.Models;
+﻿using OGNAnalyser.Client.Models;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace OGNAnalyser.Core.Parser
+namespace OGNAnalyser.Client.Parser
 {
     public static class BeaconParser
     {
-        public static readonly Regex MatcherAPRSBaseRegex = new Regex(@"(.+?)>APRS,(TCPIP\*,)?(q[A-U].),(.+?):|(\d{6})+h(\d{4}\.\d{2})(N|S).(\d{5}\.\d{2})(E|W).((\d{3})|(\d{73}))?(\/[0-9]{3}\/)?A=(\d{6}).*?");
-        public static readonly Regex MatcherAircraftBodyRegex = new Regex(@"(?:\s\!W)([0-9]{2})(?:\!)(?:\sid)([a-fA-F0-9]{8})(?:\s)([+-][0-9]{3}fpm)(?:\s)([+-][0-9]\.[0-9]rot)(?:\s.*)");
-        public static readonly Regex MatcherReceiverBodyRegex = new Regex(@"(?: )(.)*");
+        private static readonly Regex matcherAPRSBaseRegex = new Regex(@"(.+?)>APRS,(TCPIP\*,)?(q[A-U].),(.+?):|(\d{6})+h(\d{4}\.\d{2})(N|S).(\d{5}\.\d{2})(E|W).{0,2}((\d{3})|(\d{73}))?(\/[0-9]{3}\/)?A=(\d{6}).*?");
+        private static readonly Regex matcherAircraftBodyRegex = new Regex(@"(?:(?:\s\!W)([0-9]{2})(?:\!))?(?:\sid)([a-fA-F0-9]{8})(?:\s)([+-][0-9]{3,5})(?:fpm\s)([+-][0-9]\.[0-9])(?:rot\s)([0-9]{1,3}.[0-9])(?:dB\s)([0-9]{1,3})(?:e\s)([\+\-]?[0-9]{1,4}\.[0-9])(?:kHz\sgps)([0-9]{1,3})(?:x)([0-9]{1,3})(?:\s*)");
+        private static readonly Regex matcherReceiverBodyRegex = new Regex(@"(?: )(.)*");
 
         public static Beacon ParseBeacon(string receivedLine)
         {
@@ -27,7 +24,7 @@ namespace OGNAnalyser.Core.Parser
 
                 if (!receivedLine.StartsWith("#"))
                 {
-                    var aprsMatches = MatcherAPRSBaseRegex.Matches(receivedLine);
+                    var aprsMatches = matcherAPRSBaseRegex.Matches(receivedLine);
 
                     if (aprsMatches.Count != 2)
                         throw new BeaconParserException("APRS Base matcher failed.", receivedLine);
@@ -85,17 +82,17 @@ namespace OGNAnalyser.Core.Parser
                 position.PositionLocalTime = DateTime.ParseExact($"{DateTime.Now:yyyyMMdd} {aprsBaseCoordsMatchGroup[5].Value}", "yyyyMMdd HHmmss", CultureInfo.InvariantCulture);
 
                 // lat (5111.32N)
-                position.PositionLatDegrees = (float)Math.Round(float.Parse(aprsBaseCoordsMatchGroup[6].Value) / 100f, 4);
+                position.PositionLatDegrees = (float)Math.Round(float.Parse(aprsBaseCoordsMatchGroup[6].Value, CultureInfo.InvariantCulture) / 100f, 4);
                 if (aprsBaseCoordsMatchGroup[7].Value == "S")
                     position.PositionLatDegrees *= -1;
 
                 // lon (00102.04W)
-                position.PositionLonDegrees = (float)Math.Round(float.Parse(aprsBaseCoordsMatchGroup[8].Value) / 100f, 4);
+                position.PositionLonDegrees = (float)Math.Round(float.Parse(aprsBaseCoordsMatchGroup[8].Value, CultureInfo.InvariantCulture) / 100f, 4);
                 if (aprsBaseCoordsMatchGroup[9].Value == "W")
                     position.PositionLonDegrees *= -1;
 
                 // Altitude
-                position.PositionAltitudeMeters = (int)Math.Round(int.Parse(aprsBaseCoordsMatchGroup[14].Value) / 3.28084f);
+                position.PositionAltitudeMeters = (int)Math.Round(int.Parse(aprsBaseCoordsMatchGroup[14].Value, CultureInfo.InvariantCulture) / 3.28084f);
             }
             catch (Exception e)
             {
@@ -119,41 +116,41 @@ namespace OGNAnalyser.Core.Parser
             throw new BeaconParserException("Unknown beacon type for concrete beacon parser", receivedLine);
         }
 
-        // sample: /064314h4658.69N/00707.77Ez000/000/A=001374 !W96! id02DF0A52 +000fpm +0.0rot 54.2dB 0e -5.0kHz gps11x18
         private static void parseOgnAircraftData(this AircraftBeacon beacon, string receivedLine)
         {
             try
             {
-                var match = MatcherAircraftBodyRegex.Match(receivedLine);
+                var match = matcherAircraftBodyRegex.Match(receivedLine);
 
                 // coords extension
                 string coordsExt = match.Groups[1].Value.Trim();
-                beacon.PositionLatDegrees += float.Parse(coordsExt[0].ToString()) / 100000f;
-                beacon.PositionLonDegrees += float.Parse(coordsExt[1].ToString()) / 100000f;
+                if(!string.IsNullOrWhiteSpace(coordsExt))
+                {
+                    beacon.PositionLatDegrees += float.Parse(coordsExt[0].ToString()) / 100000f;
+                    beacon.PositionLonDegrees += float.Parse(coordsExt[1].ToString()) / 100000f;
+                }
 
                 // aircraft id
-                ulong acftId = ulong.Parse(match.Groups[2].Value.Trim(), NumberStyles.HexNumber);
+                beacon.AircraftId = ulong.Parse(match.Groups[2].Value.Trim(), NumberStyles.HexNumber);
+
+                // climb rate
+                beacon.ClimbRateMetersPerSecond = (float) Math.Round(float.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture) * 0.00508f, 2);
 
                 // rotation
-                string rot = match.Groups[3].Value.Trim();
+                beacon.RotationRateHalfTurnPerTwoMins = (float) Math.Round(float.Parse(match.Groups[4].Value, CultureInfo.InvariantCulture), 1);
 
-                // info
-                string info = match.Groups[4].Value.Trim();
+                // SNR dB
+                beacon.SignalNoiseRatioDb = (float)Math.Round(float.Parse(match.Groups[5].Value, CultureInfo.InvariantCulture), 1);
 
+                // forward correct tx errors
+                beacon.TransmissionErrorsCorrected = int.Parse(match.Groups[6].Value, CultureInfo.InvariantCulture);
 
-                //string ognPart = body.Substring(body.IndexOf(' ') + 1);
+                // center frequency offset (kHz)
+                beacon.CenterFrequencyOffsetKhz = (float)Math.Round(float.Parse(match.Groups[7].Value, CultureInfo.InvariantCulture), 1);
 
-                //var coordsExtensionPart = Regex.Match(body, "(?:\\!W)(.)(.)(?=\\!)").Value;
-                //var addressPart = Regex.Match(body, "(?:id)([a-fA-F0-9]){8}").Value;
-                //var climbRatePart = Regex.Match(body, "(\\+|\\-)(\\d+)fpm").Value;
-                //var rotationPart = Regex.Match(body, "(\\+|\\-)(\\d+\\.\\d+)rot").Value;
-
-                // signalStrength
-                // errorCount
-
-                // hearId?
-                // freq offset?
-
+                // gps visible/channels
+                beacon.GpsSatellitesVisible = int.Parse(match.Groups[8].Value, CultureInfo.InvariantCulture);
+                beacon.GpsSatelliteChannelsAvailable = int.Parse(match.Groups[9].Value, CultureInfo.InvariantCulture); 
             }
             catch (Exception e)
             {
@@ -161,10 +158,9 @@ namespace OGNAnalyser.Core.Parser
             }
         }
 
-        // sample: /074555h5212.73NI00007.80E&/A=000066 CPU:4.0 RAM:242.7/458.8MB NTP:0.8ms/-28.6ppm +56.2C RF:+38+2.4ppm/+1.7dB
         private static void parseOgnReceiverData(this ReceiverBeacon beacon, string receivedLine)
         {
-            beacon.SystemInfo = MatcherReceiverBodyRegex.Matches(receivedLine)[0].Value.Trim();
+            beacon.SystemInfo = matcherReceiverBodyRegex.Matches(receivedLine)[0].Value.Trim();
         }
 
         

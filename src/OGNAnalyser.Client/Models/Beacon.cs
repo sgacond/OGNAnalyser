@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OGNAnalyser.Core.Models
+namespace OGNAnalyser.Client.Models
 {
     /// <summary>
     /// Abstract APRS Beacon message. Use static ParseBeacon to parse a APRS Message.
