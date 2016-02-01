@@ -77,6 +77,5 @@ namespace OGNAnalyser.Tests.Analyser
             Assert.Equal(12, buf.First());
             Assert.Equal(3, buf.Last());
         }
-
     }
 }

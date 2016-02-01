@@ -31,19 +31,6 @@ namespace OGNAnalyser.Core.Util
             head = bufferSize - 1;
         }
 
-        public T Dequeue()
-        {
-            lock (lockObj)
-            {
-                if (Empty) throw new InvalidOperationException("Queue exhausted");
-
-                T dequeued = buffer[head];
-                head = prevPosition(head);
-                Length--;
-                return dequeued;
-            }
-        }
-
         public void Enqueue(T toAdd)
         {
             lock (lockObj)
