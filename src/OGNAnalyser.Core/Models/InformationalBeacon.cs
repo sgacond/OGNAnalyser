@@ -8,10 +8,9 @@ namespace OGNAnalyser.Core.Models
     /// <summary>
     /// Informational beacon ("comment").
     /// </summary>
-    public class InformationalBeacon : Beacon
+    public class InformationalComment : Beacon
     {
         public override BeaconType BeaconType { get { return BeaconType.Informational; } }
-
         public string InformationalData { get; internal set; }
     }
 }

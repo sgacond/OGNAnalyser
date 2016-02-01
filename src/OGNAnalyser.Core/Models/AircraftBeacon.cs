@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace OGNAnalyser.Core.Models
 {
-    public class AircraftBeacon : Beacon, IGeographicPositionAndDateTime
+    public class AircraftBeacon : ConcreteBeacon, IGeographicPositionAndDateTime
     {
         public override BeaconType BeaconType { get { return BeaconType.Aircraft; } }
 

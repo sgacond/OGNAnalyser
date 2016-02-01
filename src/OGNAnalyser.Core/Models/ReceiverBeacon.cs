@@ -10,7 +10,7 @@ namespace OGNAnalyser.Core.Models
     /// Receiver beacon. Parsed from APRS string.
     /// Sample: Cambridge>APRS,TCPIP*,qAC,GLIDERN2:/074555h5212.73NI00007.80E&/A=000066 CPU:4.0 RAM:242.7/458.8MB NTP:0.8ms/-28.6ppm +56.2C RF:+38+2.4ppm/+1.7dB
     /// </summary>
-    public class ReceiverBeacon : Beacon, IGeographicPositionAndDateTime
+    public class ReceiverBeacon : ConcreteBeacon, IGeographicPositionAndDateTime
     {
         public override BeaconType BeaconType { get { return BeaconType.Receiver; } }
 

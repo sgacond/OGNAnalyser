@@ -37,8 +37,8 @@ namespace OGNAnalyser.Tests.APRS
 
         [Theory]
         [InlineData("")]
-        [InlineData(null)]
-        [InlineData("FLRDDE626>APRS,qXXYY,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0ADDE626 -019fpm +0.0rot 5.5dB 3e -4.3kHzs")] // invalid beacon type
+        [InlineData(null)] //-----> qXXYY (invalid beacon type)
+        [InlineData("FLRDDE626>APRS,qXXYY,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0ADDE626 -019fpm +0.0rot 5.5dB 3e -4.3kHzs")]
         public void ParserDoesCrashOnInvalidLine(string receivedLine)
         {
             // Assert.DoesNotThrow not available in xunit.
@@ -55,13 +55,13 @@ namespace OGNAnalyser.Tests.APRS
         public void InformationalLineStoresLine(string receivedLine)
         {
             var beacon = BeaconParser.ParseBeacon(receivedLine);
-            Assert.IsAssignableFrom<InformationalBeacon>(beacon);
-            Assert.True(((InformationalBeacon)beacon).InformationalData == receivedLine);
+            Assert.IsAssignableFrom<InformationalComment>(beacon);
+            Assert.True(((InformationalComment)beacon).InformationalData == receivedLine);
         }
         
 
         [Fact]
-        public void ReceiverParsedOk()
+        public void ReceiverParsed()
         {
             var beacon = BeaconParser.ParseBeacon("AbtwilSG>APRS,TCPIP*,qAC,GLIDERN2:/075629h4725.20NI00918.58E&000/000/A=002234 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
             Assert.IsAssignableFrom<ReceiverBeacon>(beacon);
@@ -79,26 +79,35 @@ namespace OGNAnalyser.Tests.APRS
         }
 
         [Fact]
-        public void ReceiverParsesLatNorthSouthOK()
+        public void ReceiverParsesLatNorthSouth()
         {
             // see: ----------------------------------------------------------------------------------------------> N
-            var recBecon1 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETHING,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
+            var recBecon1 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETH>APRS,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
             Assert.Equal(47.2520f, recBecon1.PositionLatDegrees);
             // see: ----------------------------------------------------------------------------------------------> S
-            var recBecon2 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETHING,TCPIP*,qAC,SOMETHING:/000000h4725.20SI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
+            var recBecon2 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETH>APRS,TCPIP*,qAC,SOMETHING:/000000h4725.20SI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
             Assert.Equal(-47.2520f, recBecon2.PositionLatDegrees);
         }
 
         [Fact]
-        public void ReceiverParsesLonEeastWestOK()
+        public void ReceiverParsesLonEeastWest()
         {
             // see: --------------------------------------------------------------------------------------------------------> E
-            var recBecon1 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETHING,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
+            var recBecon1 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETH>APRS,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
             Assert.Equal(9.1858f, recBecon1.PositionLonDegrees);
             // see: --------------------------------------------------------------------------------------------------------> W
-            var recBecon2 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETHING,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58W&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
+            var recBecon2 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETH>APRS,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58W&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
             Assert.Equal(-9.1858f, recBecon2.PositionLonDegrees);
         }
 
+        [Fact]
+        public void AircraftParser()
+        {
+            var beacon = BeaconParser.ParseBeacon("FLRDF0A52>APRS,qAS,LSTB:/064314h4658.69N/00707.77Ez000/000/A=001374 !W96! id02DF0A52 +000fpm +0.0rot 54.2dB 0e -5.0kHz gps11x18");
+            Assert.IsAssignableFrom<AircraftBeacon>(beacon);
+            var acftBecon = (AircraftBeacon)beacon;
+
+            
+        }
     }
 }
