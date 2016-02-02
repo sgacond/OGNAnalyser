@@ -7,8 +7,8 @@ namespace OGNAnalyser.Client.Models
 {
     public interface IGeographicPosition
     {
-        float PositionLatDegrees { get; set; }
-        float PositionLonDegrees { get; set; }
+        double PositionLatDegrees { get; set; }
+        double PositionLonDegrees { get; set; }
         int PositionAltitudeMeters { get; set; }
     }
 

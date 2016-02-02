@@ -17,8 +17,8 @@ namespace OGNAnalyser.Client.Models
         public string ReceiverName { get { return BeaconSender; } }
         public string RegistredNetwork { get { return BeaconReceiver; } }
 
-        public float PositionLatDegrees { get; set; }
-        public float PositionLonDegrees { get; set; }
+        public double PositionLatDegrees { get; set; }
+        public double PositionLonDegrees { get; set; }
         public DateTime PositionLocalTime { get; set; }
         public int PositionAltitudeMeters { get; set; }
         public string SystemInfo { get; internal set; }

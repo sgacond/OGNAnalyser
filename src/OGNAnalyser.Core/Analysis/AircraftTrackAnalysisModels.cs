@@ -6,25 +6,18 @@ using System.Threading.Tasks;
 
 namespace OGNAnalyser.Core.Analysis
 {
-    public class ExtendedAircraftBeacon
+    public class AircraftBeaconSpeedAndTrack
     {
         public AircraftBeacon Beacon { get; internal set; }
 
+        public bool Analysed { get; internal set; }
         public float GroundSpeedMs { get; internal set; }
+        public float TrackDegrees { get; internal set; }
 
-        public ExtendedAircraftBeacon(AircraftBeacon beacon)
+        public AircraftBeaconSpeedAndTrack(Client.Models.AircraftBeacon beacon)
         {
-            this.Beacon = beacon;
+            Analysed = false;
+            Beacon = beacon;
         }
-    }
-
-    public class AircraftTrackAnalysisAircraftData
-    {
-        public TimeSpan AnalysedTimespan { get; internal set; }
-        public DateTime LastBeaconAnalysedLocalTime { get; internal set; }
-        public float StartSpeedMs { get; internal set; }
-        public float EndSpeedMs { get; internal set; }
-
-        public IEnumerable<ExtendedAircraftBeacon> AnalysedBeacons { get; internal set; }
     }
 }

@@ -14,28 +14,24 @@ namespace OGNAnalyser.Core.Analysis
         private const int maxAircraftTrackAnalysisSecs = 60;
         private const double bufferAnalysisTimerIntervalMillis = 2000;
 
-        private Dictionary<ulong, CircularFifoBuffer<AircraftBeacon>> aircraftBuffer = new Dictionary<ulong, CircularFifoBuffer<AircraftBeacon>>();
-        private Dictionary<ulong, AircraftTrackAnalysisAircraftData> aircraftAnalysisData = new Dictionary<ulong, AircraftTrackAnalysisAircraftData>();
+        private Dictionary<ulong, CircularFifoBuffer<AircraftBeaconSpeedAndTrack>> aircraftBuffer = new Dictionary<ulong, CircularFifoBuffer<AircraftBeaconSpeedAndTrack>>();
         private Timer bufferAnalysisTimer = new Timer(bufferAnalysisTimerIntervalMillis);
 
         public AircraftTrackAnalyser()
         {
             bufferAnalysisTimer.Elapsed += (s, e) =>
             {
-                foreach(var key in aircraftBuffer.Keys)
+                foreach(var acft in aircraftBuffer.Values)
                 {
-                    // analysis data for this track not yet addes
-                    if (!aircraftAnalysisData.ContainsKey(key))
-                        aircraftAnalysisData.Add(key, aircraftBuffer[key].AnalyseTrack(TimeSpan.FromSeconds(maxAircraftTrackAnalysisSecs)));
+                    if (acft.First().Analysed)
+                        continue;
 
-                    // analysis data for this track outdated                    
-                    else if (aircraftAnalysisData[key].LastBeaconAnalysedLocalTime < aircraftBuffer[key].First().PositionLocalTime)
-                        aircraftAnalysisData[key] = aircraftBuffer[key].AnalyseTrack(TimeSpan.FromSeconds(maxAircraftTrackAnalysisSecs));
+                    acft.AnalyseSpeedAndTrack(TimeSpan.FromSeconds(maxAircraftTrackAnalysisSecs));
                 }
 
                 Console.WriteLine("Analysis - Aircraft:");
-                foreach (var kvp in aircraftAnalysisData)
-                    Console.WriteLine($"\t{kvp.Key}: {kvp.Value.AnalysedBeacons} ({kvp.Value.AnalysedTimespan.TotalSeconds}) - {kvp.Value.EndSpeedMs}");
+                foreach (var row in aircraftBuffer.Select(b => new { id = b.Key, lastSpeed = b.Value.First().GroundSpeedMs, lastTrack = b.Value.First().TrackDegrees }))
+                    Console.WriteLine($"\t{row.id}: {row.lastSpeed} - {row.lastTrack}");
             };
             bufferAnalysisTimer.Start();
         }
@@ -43,9 +39,9 @@ namespace OGNAnalyser.Core.Analysis
         public void AddAircraftBeacon(AircraftBeacon beacon)
         {
             if (!aircraftBuffer.ContainsKey(beacon.AircraftId))
-                aircraftBuffer.Add(beacon.AircraftId, new CircularFifoBuffer<AircraftBeacon>(aircraftBuffersCapacity));
+                aircraftBuffer.Add(beacon.AircraftId, new CircularFifoBuffer<AircraftBeaconSpeedAndTrack>(aircraftBuffersCapacity));
 
-            aircraftBuffer[beacon.AircraftId].Enqueue(beacon);
+            aircraftBuffer[beacon.AircraftId].Enqueue(new AircraftBeaconSpeedAndTrack(beacon));
         }
     }
 }

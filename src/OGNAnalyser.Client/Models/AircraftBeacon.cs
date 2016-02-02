@@ -15,8 +15,8 @@ namespace OGNAnalyser.Client.Models
 
         public ulong AircraftId { get; set; }
 
-        public float PositionLatDegrees { get; set; }
-        public float PositionLonDegrees { get; set; }
+        public double PositionLatDegrees { get; set; }
+        public double PositionLonDegrees { get; set; }
         public int PositionAltitudeMeters { get; set; }
         public DateTime PositionLocalTime { get; set; }
 

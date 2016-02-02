@@ -58,7 +58,6 @@ namespace OGNAnalyser.Tests.APRS
             Assert.IsAssignableFrom<InformationalComment>(beacon);
             Assert.True(((InformationalComment)beacon).InformationalData == receivedLine);
         }
-        
 
         [Fact]
         public void ReceiverParsed()
@@ -68,8 +67,8 @@ namespace OGNAnalyser.Tests.APRS
             var recBecon = (ReceiverBeacon)beacon;
 
             Assert.Equal("GLIDERN2", recBecon.RegistredNetwork);
-            Assert.Equal(47.2520f, recBecon.PositionLatDegrees); //4725.20 1/100th Minutes in degrees
-            Assert.Equal(9.1858f, recBecon.PositionLonDegrees); //918.58 1/100th Minutes in degrees
+            Assert.Equal(47.42d, recBecon.PositionLatDegrees); //47° 25.20 Minutes in degrees
+            Assert.Equal(9.30966667d, recBecon.PositionLonDegrees);  // 9° 18.58 Minutes in degrees
             Assert.Equal(681, recBecon.PositionAltitudeMeters); // 2234 feet in meters
 
             var diffMillis = recBecon.PositionLocalTime.Subtract(DateTime.Now.Date.AddHours(7).AddMinutes(56).AddSeconds(29)).TotalMilliseconds;
@@ -83,10 +82,10 @@ namespace OGNAnalyser.Tests.APRS
         {
             // see: ----------------------------------------------------------------------------------------------> N
             var recBecon1 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETH>APRS,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
-            Assert.Equal(47.2520f, recBecon1.PositionLatDegrees);
+            Assert.Equal(47.42d, recBecon1.PositionLatDegrees);
             // see: ----------------------------------------------------------------------------------------------> S
             var recBecon2 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETH>APRS,TCPIP*,qAC,SOMETHING:/000000h4725.20SI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
-            Assert.Equal(-47.2520f, recBecon2.PositionLatDegrees);
+            Assert.Equal(-47.42d, recBecon2.PositionLatDegrees);
         }
 
         [Fact]
@@ -94,10 +93,10 @@ namespace OGNAnalyser.Tests.APRS
         {
             // see: --------------------------------------------------------------------------------------------------------> E
             var recBecon1 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETH>APRS,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58E&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
-            Assert.Equal(9.1858f, recBecon1.PositionLonDegrees);
+            Assert.Equal(9.30966667d, recBecon1.PositionLonDegrees);
             // see: --------------------------------------------------------------------------------------------------------> W
             var recBecon2 = (ReceiverBeacon)BeaconParser.ParseBeacon("SOMETH>APRS,TCPIP*,qAC,SOMETHING:/000000h4725.20NI00918.58W&000/000/A=000001 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB");
-            Assert.Equal(-9.1858f, recBecon2.PositionLonDegrees);
+            Assert.Equal(-9.30966667d, recBecon2.PositionLonDegrees);
         }
 
         [Fact]
@@ -107,8 +106,8 @@ namespace OGNAnalyser.Tests.APRS
             Assert.IsAssignableFrom<AircraftBeacon>(beacon);
             var acftBecon = (AircraftBeacon)beacon;
 
-            Assert.Equal(46.58699f, acftBecon.PositionLatDegrees); // 4658.69 1/100th Minutes in degrees + .00009 (!W96!)
-            Assert.Equal(7.07776f, acftBecon.PositionLonDegrees);  // 707.77 1/100th Minutes in degrees + .00006 (!W96!)
+            Assert.Equal(46.97831667d, acftBecon.PositionLatDegrees); // 46° 58.69 Minutes in degrees + .009 minutes (!W96!)
+            Assert.Equal(7.1296d, acftBecon.PositionLonDegrees);  //  7° 07.77 Minutes in degrees + .006 minutes (!W96!)
             Assert.True(0x02DF0A52 == acftBecon.AircraftId); // id02DF0A52
             Assert.Equal(256, acftBecon.PositionAltitudeMeters);  // 840 feet in meters
             Assert.Equal(0.56f, acftBecon.ClimbRateMetersPerSecond); // 110fpm in m/s

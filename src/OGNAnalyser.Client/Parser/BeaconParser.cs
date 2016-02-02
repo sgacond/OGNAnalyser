@@ -82,12 +82,12 @@ namespace OGNAnalyser.Client.Parser
                 position.PositionLocalTime = DateTime.ParseExact($"{DateTime.Now:yyyyMMdd} {aprsBaseCoordsMatchGroup[5].Value}", "yyyyMMdd HHmmss", CultureInfo.InvariantCulture);
 
                 // lat (5111.32N)
-                position.PositionLatDegrees = (float)Math.Round(float.Parse(aprsBaseCoordsMatchGroup[6].Value, CultureInfo.InvariantCulture) / 100f, 4);
+                position.PositionLatDegrees = parseAprsCoordValue(aprsBaseCoordsMatchGroup[6].Value);
                 if (aprsBaseCoordsMatchGroup[7].Value == "S")
                     position.PositionLatDegrees *= -1;
 
                 // lon (00102.04W)
-                position.PositionLonDegrees = (float)Math.Round(float.Parse(aprsBaseCoordsMatchGroup[8].Value, CultureInfo.InvariantCulture) / 100f, 4);
+                position.PositionLonDegrees = parseAprsCoordValue(aprsBaseCoordsMatchGroup[8].Value);
                 if (aprsBaseCoordsMatchGroup[9].Value == "W")
                     position.PositionLonDegrees *= -1;
 
@@ -98,6 +98,15 @@ namespace OGNAnalyser.Client.Parser
             {
                 throw new BeaconParserException("Error while parsing geographical position.", aprsBaseCoordsMatchGroup[0].Value, e);
             }
+        }
+
+        private static double parseAprsCoordValue(string input)
+        {
+            //5111.32N is 51 degrees + 11.32 minutes (decimal)
+            input = input.Trim();
+            int degrees = int.Parse(input.Substring(0, input.Length - 5));
+            double minutes = Math.Round(double.Parse(input.Substring(input.Length - 5), CultureInfo.InvariantCulture), 2);
+            return degrees + Math.Round(minutes / 60f, 8);
         }
 
         public static void parseOgnConcreteBeacon(this ConcreteBeacon beacon, string receivedLine)
@@ -125,9 +134,9 @@ namespace OGNAnalyser.Client.Parser
                 // coords extension
                 string coordsExt = match.Groups[1].Value.Trim();
                 if(!string.IsNullOrWhiteSpace(coordsExt))
-                {
-                    beacon.PositionLatDegrees += float.Parse(coordsExt[0].ToString()) / 100000f;
-                    beacon.PositionLonDegrees += float.Parse(coordsExt[1].ToString()) / 100000f;
+                {                                // these are 1/1000 minutes
+                    beacon.PositionLatDegrees += double.Parse(coordsExt[0].ToString()) / (60f * 1000f);
+                    beacon.PositionLonDegrees += double.Parse(coordsExt[1].ToString()) / (60f * 1000f);
                 }
 
                 // aircraft id
