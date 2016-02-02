@@ -12,6 +12,19 @@ namespace OGNAnalyser.Tests.Analyser
 {
     public class TrackAnalysisTests
     {
+        [Theory]
+        [InlineData("Data\\54oz5of2_Landing.igc")]
+        public void IgcTest1(string path)
+        {
+            var beacons = IGCAircraftBeaconReader.ReadFromIGCFile(path, 0x0A000001); // simulate fifo collection
+            var beaconsBuffer = new CircularFifoBuffer<AircraftBeaconSpeedAndTrack>(beacons.Count() - 4); // gice the circular buffer a chance to fill the internal buffer
+            foreach (var beacon in beacons)
+                beaconsBuffer.Enqueue(new AircraftBeaconSpeedAndTrack(beacon));
+            
+            var myTestPoints = beaconsBuffer.Select(b => new { b.Beacon.PositionLatDegrees, b.Beacon.PositionLonDegrees, b.Beacon.PositionAltitudeMeters, b.Beacon.ClimbRateMetersPerSecond, b.GroundSpeedMs, b.TrackDegrees }).ToList();
+            throw new NotImplementedException("this shouldn't pass... just a test-test.");
+        }
+
         //[Fact]
         //public void TrackAnalysisGroundspeedOKSet1()
         //{

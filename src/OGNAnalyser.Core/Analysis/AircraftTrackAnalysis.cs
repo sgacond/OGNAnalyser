@@ -14,7 +14,7 @@ namespace OGNAnalyser.Core.Analysis
         private const int maxAircraftTrackAnalysisSecs = 180;
         private const double bufferAnalysisTimerIntervalMillis = 2000;
 
-        private Dictionary<ulong, CircularFifoBuffer<AircraftBeaconSpeedAndTrack>> aircraftBuffer = new Dictionary<ulong, CircularFifoBuffer<AircraftBeaconSpeedAndTrack>>();
+        private Dictionary<uint, CircularFifoBuffer<AircraftBeaconSpeedAndTrack>> aircraftBuffer = new Dictionary<uint, CircularFifoBuffer<AircraftBeaconSpeedAndTrack>>();
         private Timer bufferAnalysisTimer = new Timer(bufferAnalysisTimerIntervalMillis);
 
         public AircraftTrackAnalyser()
@@ -29,19 +29,21 @@ namespace OGNAnalyser.Core.Analysis
                     acft.AnalyseSpeedAndTrack(TimeSpan.FromSeconds(maxAircraftTrackAnalysisSecs));
                 }
 
+                Console.Clear();
                 Console.WriteLine("Analysis - Aircraft:");
-                foreach (var row in aircraftBuffer.Select(b => new { id = b.Key, lastSpeed = b.Value.First().GroundSpeedMs, lastTrack = b.Value.First().TrackDegrees }))
-                    Console.WriteLine($"\t{row.id}: {row.lastSpeed}ms ({Math.Round(row.lastSpeed*3.6f, 1)}km/h) - {row.lastTrack}°");
+                var nowUtc = DateTime.Now.ToUniversalTime();
+                foreach (var row in aircraftBuffer.Select(b => new { id = b.Key, type = b.Value.First().Beacon.AircraftType, lastSpeed = b.Value.First().GroundSpeedMs, lastTrack = b.Value.First().TrackDegrees, lastBeaconSecsAgo = nowUtc.Subtract(b.Value.First().Beacon.PositionTimeUtc).TotalSeconds }))
+                    Console.WriteLine($"\t{row.id:X} {row.type}\t: ({Math.Round(row.lastBeaconSecsAgo, 1)}s ago) {row.lastSpeed}ms ({Math.Round(row.lastSpeed*3.6f, 1)}km/h) - {row.lastTrack}°");
             };
             bufferAnalysisTimer.Start();
         }
 
         public void AddAircraftBeacon(AircraftBeacon beacon)
         {
-            if (!aircraftBuffer.ContainsKey(beacon.AircraftId))
-                aircraftBuffer.Add(beacon.AircraftId, new CircularFifoBuffer<AircraftBeaconSpeedAndTrack>(aircraftBuffersCapacity));
+            if (!aircraftBuffer.ContainsKey(beacon.AircraftAddress))
+                aircraftBuffer.Add(beacon.AircraftAddress, new CircularFifoBuffer<AircraftBeaconSpeedAndTrack>(aircraftBuffersCapacity));
 
-            aircraftBuffer[beacon.AircraftId].Enqueue(new AircraftBeaconSpeedAndTrack(beacon));
+            aircraftBuffer[beacon.AircraftAddress].Enqueue(new AircraftBeaconSpeedAndTrack(beacon));
         }
     }
 }

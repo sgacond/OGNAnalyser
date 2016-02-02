@@ -27,7 +27,11 @@ namespace OGNAnalyser.Core.Analysis
             var lagBeacon = recalc.First();
             foreach (var beacon in recalc.Skip(1))
             {
-                beacon.GroundSpeedMs = (float) Math.Round(beacon.Beacon.DistanceToGeoPositionMeters(lagBeacon.Beacon) / beacon.Beacon.PositionTimeUtc.Subtract(lagBeacon.Beacon.PositionTimeUtc).TotalSeconds, 2);
+                var dTime = beacon.Beacon.PositionTimeUtc.Subtract(lagBeacon.Beacon.PositionTimeUtc).TotalSeconds;
+                if (dTime <= 0)
+                    continue;
+
+                beacon.GroundSpeedMs = (float) Math.Round(beacon.Beacon.DistanceToGeoPositionMeters(lagBeacon.Beacon) / dTime, 2);
                 beacon.TrackDegrees = lagBeacon.Beacon.InitialBearingToGeoPositionDegrees(beacon.Beacon);
                 lagBeacon = beacon;
             }

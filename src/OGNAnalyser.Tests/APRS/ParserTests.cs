@@ -138,5 +138,27 @@ namespace OGNAnalyser.Tests.APRS
 
             Assert.Equal(-0.56f, acftBecon.ClimbRateMetersPerSecond); // -110fpm in m/s
         }
+
+        [Theory]
+        [InlineData(0x0A000001, AircraftBeacon.AddressTypes.Flarm, AircraftBeacon.AircraftTypes.TowPlane, 0x000001, false, false)]
+        [InlineData(0x8A000001, AircraftBeacon.AddressTypes.Flarm, AircraftBeacon.AircraftTypes.TowPlane, 0x000001, true, false)] // stealth
+        [InlineData(0xCA000001, AircraftBeacon.AddressTypes.Flarm, AircraftBeacon.AircraftTypes.TowPlane, 0x000001, true, true)] // stealth & no track
+        [InlineData(0x4A000001, AircraftBeacon.AddressTypes.Flarm, AircraftBeacon.AircraftTypes.TowPlane, 0x000001, false, true)] // no track
+        [InlineData(0x26000001, AircraftBeacon.AddressTypes.Flarm, AircraftBeacon.AircraftTypes.PoweredJet, 0x000001, false, false)] // jet
+        [InlineData(0x06000001, AircraftBeacon.AddressTypes.Flarm, AircraftBeacon.AircraftTypes.Glider, 0x000001, false, false)] // glider
+        [InlineData(0x07000002, AircraftBeacon.AddressTypes.OGN, AircraftBeacon.AircraftTypes.Glider, 0x000002, false, false)] // ogn address
+        [InlineData(0x04000003, AircraftBeacon.AddressTypes.Random, AircraftBeacon.AircraftTypes.Glider, 0x000003, false, false)] // random address
+        [InlineData(0x05000004, AircraftBeacon.AddressTypes.ICAO, AircraftBeacon.AircraftTypes.Glider, 0x000004, false, false)] // icao address
+        [InlineData(0x05FFFFFF, AircraftBeacon.AddressTypes.ICAO, AircraftBeacon.AircraftTypes.Glider, 0xFFFFFF, false, false)] // icao full address
+        [InlineData(0x05DDE626, AircraftBeacon.AddressTypes.ICAO, AircraftBeacon.AircraftTypes.Glider, 0xDDE626, false, false)] // icao other address
+        public void AircraftParserAddressDecoder(ulong id, AircraftBeacon.AddressTypes expectedAddressType, AircraftBeacon.AircraftTypes expectedAircraftType, uint expectedAddressValue, bool expectedStealthFlag, bool expectedNoTrackFlag)
+        {
+            var beacon = new AircraftBeacon { AircraftId = id };
+            Assert.Equal(expectedAddressType, beacon.AddressType);
+            Assert.Equal(expectedAircraftType, beacon.AircraftType);
+            Assert.Equal(expectedAddressValue, beacon.AircraftAddress);
+            Assert.Equal(expectedStealthFlag, beacon.StealthMode);
+            Assert.Equal(expectedNoTrackFlag, beacon.NoTrackingFlag);
+        }
     }
 }
