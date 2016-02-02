@@ -11,7 +11,7 @@ namespace OGNAnalyser.Core.Analysis
     public class AircraftTrackAnalyser
     {
         private const int aircraftBuffersCapacity = 60;
-        private const int maxAircraftTrackAnalysisSecs = 60;
+        private const int maxAircraftTrackAnalysisSecs = 180;
         private const double bufferAnalysisTimerIntervalMillis = 2000;
 
         private Dictionary<ulong, CircularFifoBuffer<AircraftBeaconSpeedAndTrack>> aircraftBuffer = new Dictionary<ulong, CircularFifoBuffer<AircraftBeaconSpeedAndTrack>>();
@@ -31,7 +31,7 @@ namespace OGNAnalyser.Core.Analysis
 
                 Console.WriteLine("Analysis - Aircraft:");
                 foreach (var row in aircraftBuffer.Select(b => new { id = b.Key, lastSpeed = b.Value.First().GroundSpeedMs, lastTrack = b.Value.First().TrackDegrees }))
-                    Console.WriteLine($"\t{row.id}: {row.lastSpeed} - {row.lastTrack}");
+                    Console.WriteLine($"\t{row.id}: {row.lastSpeed}ms ({Math.Round(row.lastSpeed*3.6f, 1)}km/h) - {row.lastTrack}°");
             };
             bufferAnalysisTimer.Start();
         }

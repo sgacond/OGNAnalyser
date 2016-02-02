@@ -14,6 +14,6 @@ namespace OGNAnalyser.Client.Models
 
     public interface IGeographicPositionAndDateTime : IGeographicPosition
     {
-        DateTime PositionLocalTime { get; set; }
+        DateTime PositionTimeUtc { get; set; }
     }
 }

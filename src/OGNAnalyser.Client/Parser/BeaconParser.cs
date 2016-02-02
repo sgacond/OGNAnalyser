@@ -79,7 +79,7 @@ namespace OGNAnalyser.Client.Parser
         {
             try
             {
-                position.PositionLocalTime = DateTime.ParseExact($"{DateTime.Now:yyyyMMdd} {aprsBaseCoordsMatchGroup[5].Value}", "yyyyMMdd HHmmss", CultureInfo.InvariantCulture);
+                position.PositionTimeUtc = DateTime.ParseExact($"{DateTime.Now:yyyyMMdd} {aprsBaseCoordsMatchGroup[5].Value}", "yyyyMMdd HHmmss", CultureInfo.InvariantCulture);
 
                 // lat (5111.32N)
                 position.PositionLatDegrees = parseAprsCoordValue(aprsBaseCoordsMatchGroup[6].Value);
