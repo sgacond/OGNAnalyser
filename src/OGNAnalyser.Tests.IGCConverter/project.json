@@ -1,19 +1,20 @@
 ﻿{
   "version": "1.0.0-*",
-  "description": "OGNAnalyser.Tests Class Library",
+  "description": "OGNAnalyser.Tests.IGCConverter Console Application",
   "authors": [ "Silvan Gacond" ],
   "tags": [ "" ],
   "projectUrl": "",
   "licenseUrl": "",
 
+  "compilationOptions": {
+    "emitEntryPoint": true
+  },
+
   "dependencies": {
-    "xunit": "2.1.0",
-    "xunit.runner.dnx": "2.1.0-rc1-build204",
-    "OGNAnalyser.Core": ""
   },
 
   "commands": {
-    "test": "xunit.runner.dnx"
+    "OGNAnalyser.Tests.IGCConverter": "OGNAnalyser.Tests.IGCConverter"
   },
 
   "frameworks": {

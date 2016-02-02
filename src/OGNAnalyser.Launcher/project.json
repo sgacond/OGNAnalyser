@@ -17,7 +17,7 @@
   },
 
   "commands": {
-    "OGNAnalyser.Launcher": "OGNAnalyser.Launcher"
+    "OGNAnalyser": "OGNAnalyser.Launcher"
   },
 
   "frameworks": {
