@@ -135,8 +135,8 @@ namespace OGNAnalyser.Client.Parser
                 string coordsExt = match.Groups[1].Value.Trim();
                 if(!string.IsNullOrWhiteSpace(coordsExt))
                 {                                // these are 1/1000 minutes
-                    beacon.PositionLatDegrees += double.Parse(coordsExt[0].ToString()) / (60f * 1000f);
-                    beacon.PositionLonDegrees += double.Parse(coordsExt[1].ToString()) / (60f * 1000f);
+                    beacon.PositionLatDegrees = Math.Round(beacon.PositionLatDegrees + double.Parse(coordsExt[0].ToString()) / (60f * 1000f), 8);
+                    beacon.PositionLonDegrees = Math.Round(beacon.PositionLonDegrees + double.Parse(coordsExt[1].ToString()) / (60f * 1000f), 8);
                 }
 
                 // aircraft id
