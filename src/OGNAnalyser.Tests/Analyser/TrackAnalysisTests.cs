@@ -2,6 +2,7 @@
 using OGNAnalyser.Client.Parser;
 using OGNAnalyser.Core.Analysis;
 using OGNAnalyser.Core.Util;
+using OGNAnalyser.Tests.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,17 +13,42 @@ namespace OGNAnalyser.Tests.Analyser
 {
     public class TrackAnalysisTests
     {
+        private static readonly Dictionary<string, SimpleGeoPos> testAirfields = new Dictionary<string, SimpleGeoPos> {
+                { "schaenis",  new SimpleGeoPos { PositionLatDegrees = 47.1717d, PositionLonDegrees = 9.0394d, PositionAltitudeMeters = 416 }},
+                { "puimoisson",  new SimpleGeoPos { PositionLatDegrees = 43.869867d, PositionLonDegrees = 6.168967d, PositionAltitudeMeters = 820 }} };
+        
         [Theory]
-        [InlineData("Data\\54oz5of2_Landing.igc")]
-        public void IgcTest1(string path)
+        [InlineData("Data\\54oz5of2_Landing.igc", "schaenis", 316, AircraftTrackEventTypes.Landing)]
+        [InlineData("Data\\54oz5of2_TakeOff.igc", "schaenis", 28, AircraftTrackEventTypes.TakeOff)]
+        [InlineData("Data\\56tz5ed2.igc", "schaenis", 1288, AircraftTrackEventTypes.TakeOff)]
+        [InlineData("Data\\56tz5ed2.igc", "schaenis", 11376, AircraftTrackEventTypes.Landing)]
+        [InlineData("Data\\561xx171.igc", "puimoisson", 343, AircraftTrackEventTypes.TakeOff)]
+        [InlineData("Data\\561xx171.igc", "puimoisson", 20683, AircraftTrackEventTypes.Landing)]
+        [InlineData("Data\\564xx171.igc", "puimoisson", 354, AircraftTrackEventTypes.TakeOff)]
+        [InlineData("Data\\564xx171.igc", "puimoisson", 16604, AircraftTrackEventTypes.Landing)]
+
+        public void EventDetectedUsingIGCFile(string path, string airfield, int landingAfterSeconds, AircraftTrackEventTypes evtType)
         {
             var beacons = IGCAircraftBeaconReader.ReadFromIGCFile(path, 0x0A000001); // simulate fifo collection
             var beaconsBuffer = new CircularFifoBuffer<AircraftBeaconSpeedAndTrack>(beacons.Count() - 4); // gice the circular buffer a chance to fill the internal buffer
+            var events = new List<AircraftTrackEvent>();
+
+            int i = 0;
             foreach (var beacon in beacons)
+            {
                 beaconsBuffer.Enqueue(new AircraftBeaconSpeedAndTrack(beacon));
-            
-            var myTestPoints = beaconsBuffer.Select(b => new { b.Beacon.PositionLatDegrees, b.Beacon.PositionLonDegrees, b.Beacon.PositionAltitudeMeters, b.Beacon.ClimbRateMetersPerSecond, b.GroundSpeedMs, b.TrackDegrees }).ToList();
-            throw new NotImplementedException("this shouldn't pass... just a test-test.");
+                if (i++ % 5 == 0) // analyse with sliding window after some beacons - in normale use triggered by timer.
+                {
+                    var pseudoTimeEvalDateTime = beacon.PositionTimeUTC.AddSeconds(10);
+                    beaconsBuffer.AnalyseSpeedAndTrack(pseudoTimeEvalDateTime, TimeSpan.FromSeconds(60));
+                    events.AddRange(beaconsBuffer.DetectTrackEvents(pseudoTimeEvalDateTime, TimeSpan.FromSeconds(60), testAirfields[airfield]));
+                }
+            }
+
+            var expectedDateTime = beacons.First().PositionTimeUTC + TimeSpan.FromSeconds(landingAfterSeconds);
+            var expectedEvents = events.Distinct(new AircraftTrackEventComparer()).Where(e => e.EventType == evtType && e.EventDateTimeUTC == expectedDateTime);
+
+            Assert.True(expectedEvents.Any());
         }
 
         //[Fact]

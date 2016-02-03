@@ -26,13 +26,13 @@ namespace OGNAnalyser.Core.Analysis
                     if (acft.First().Analysed)
                         continue;
 
-                    acft.AnalyseSpeedAndTrack(TimeSpan.FromSeconds(maxAircraftTrackAnalysisSecs));
+                    acft.AnalyseSpeedAndTrack(DateTime.Now.ToUniversalTime(), TimeSpan.FromSeconds(maxAircraftTrackAnalysisSecs));
                 }
 
                 Console.Clear();
                 Console.WriteLine("Analysis - Aircraft:");
                 var nowUtc = DateTime.Now.ToUniversalTime();
-                foreach (var row in aircraftBuffer.Select(b => new { id = b.Key, type = b.Value.First().Beacon.AircraftType, lastSpeed = b.Value.First().GroundSpeedMs, lastTrack = b.Value.First().TrackDegrees, lastBeaconSecsAgo = nowUtc.Subtract(b.Value.First().Beacon.PositionTimeUtc).TotalSeconds }))
+                foreach (var row in aircraftBuffer.Select(b => new { id = b.Key, type = b.Value.First().Beacon.AircraftType, lastSpeed = b.Value.First().GroundSpeedMs, lastTrack = b.Value.First().TrackDegrees, lastBeaconSecsAgo = nowUtc.Subtract(b.Value.First().Beacon.PositionTimeUTC).TotalSeconds }))
                     Console.WriteLine($"\t{row.id:X} {row.type}\t: ({Math.Round(row.lastBeaconSecsAgo, 1)}s ago) {row.lastSpeed}ms ({Math.Round(row.lastSpeed*3.6f, 1)}km/h) - {row.lastTrack}°");
             };
             bufferAnalysisTimer.Start();

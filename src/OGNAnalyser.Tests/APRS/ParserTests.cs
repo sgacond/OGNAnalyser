@@ -71,7 +71,7 @@ namespace OGNAnalyser.Tests.APRS
             Assert.Equal(9.30966667d, recBecon.PositionLonDegrees);  // 9° 18.58 Minutes in degrees
             Assert.Equal(681, recBecon.PositionAltitudeMeters); // 2234 feet in meters
 
-            var diffMillis = recBecon.PositionTimeUtc.Subtract(DateTime.Now.Date.AddHours(7).AddMinutes(56).AddSeconds(29)).TotalMilliseconds;
+            var diffMillis = recBecon.PositionTimeUTC.Subtract(DateTime.Now.Date.AddHours(7).AddMinutes(56).AddSeconds(29)).TotalMilliseconds;
             Assert.True(diffMillis < 1000);
 
             Assert.Equal("v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB", recBecon.SystemInfo);

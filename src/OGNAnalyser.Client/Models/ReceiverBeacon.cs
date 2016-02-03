@@ -19,7 +19,7 @@ namespace OGNAnalyser.Client.Models
 
         public double PositionLatDegrees { get; set; }
         public double PositionLonDegrees { get; set; }
-        public DateTime PositionTimeUtc { get; set; }
+        public DateTime PositionTimeUTC { get; set; }
         public int PositionAltitudeMeters { get; set; }
         public string SystemInfo { get; internal set; }
     }

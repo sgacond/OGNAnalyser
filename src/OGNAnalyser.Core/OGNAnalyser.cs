@@ -18,8 +18,8 @@ namespace OGNAnalyserCore
             client.AircraftBeaconReceived += b => analyser.AddAircraftBeacon(b);
 
             // console loggers
-            client.AircraftBeaconReceived += b => Console.WriteLine($"AIRCRAFT: {b.AircraftId}, {b.PositionTimeUtc}, {b.PositionLatDegrees}, {b.PositionLonDegrees}, {b.PositionAltitudeMeters}, {b.ClimbRateMetersPerSecond}, {b.RotationRateHalfTurnPerTwoMins}");
-            client.ReceiverBeaconReceived += b => Console.WriteLine($"Receiver: {b.BeaconSender}, {b.PositionTimeUtc}, {b.PositionLatDegrees}, {b.PositionLonDegrees}, {b.PositionAltitudeMeters}, {b.SystemInfo}");
+            client.AircraftBeaconReceived += b => Console.WriteLine($"AIRCRAFT: {b.AircraftId}, {b.PositionTimeUTC}, {b.PositionLatDegrees}, {b.PositionLonDegrees}, {b.PositionAltitudeMeters}, {b.ClimbRateMetersPerSecond}, {b.RotationRateHalfTurnPerTwoMins}");
+            client.ReceiverBeaconReceived += b => Console.WriteLine($"Receiver: {b.BeaconSender}, {b.PositionTimeUTC}, {b.PositionLatDegrees}, {b.PositionLonDegrees}, {b.PositionAltitudeMeters}, {b.SystemInfo}");
         }
 
         public void Dispose()

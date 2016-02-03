@@ -28,7 +28,8 @@ namespace OGNAnalyser.Tests
 
                 DateTime bRecDateTime = DateTime.ParseExact($"19841111 {match.Groups[1]}", "yyyyMMdd HHmmss", CultureInfo.InvariantCulture);
 
-                int alt = int.Parse(match.Groups[4].Value);
+                // take gps alt... without offset
+                int alt = int.Parse(match.Groups[5].Value);
 
                 beacons.Add(new AircraftBeacon
                 {
@@ -42,7 +43,7 @@ namespace OGNAnalyser.Tests
                     SignalNoiseRatioDb = 54f,
                     RotationRateHalfTurnPerTwoMins = 0,
                     ParsedDateTime = bRecDateTime,
-                    PositionTimeUtc = bRecDateTime,
+                    PositionTimeUTC = bRecDateTime,
                     PositionAltitudeMeters = alt,
                     PositionLatDegrees = igcFormatToDegrees(match.Groups[2].Value),
                     PositionLonDegrees = igcFormatToDegrees(match.Groups[3].Value),
@@ -53,8 +54,8 @@ namespace OGNAnalyser.Tests
                 lagDt = bRecDateTime;
             }
 
-            var corr = DateTime.Now.ToUniversalTime().Subtract(beacons.Max(b => b.PositionTimeUtc));
-            beacons.ForEach(b => b.PositionTimeUtc = b.PositionTimeUtc.Add(corr));
+            var corr = DateTime.Now.ToUniversalTime().Subtract(beacons.Max(b => b.PositionTimeUTC));
+            beacons.ForEach(b => b.PositionTimeUTC = b.PositionTimeUTC.Add(corr));
             beacons.ForEach(b => b.ParsedDateTime = b.ParsedDateTime.Add(corr));
             
             return beacons;

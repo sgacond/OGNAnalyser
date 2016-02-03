@@ -1,5 +1,6 @@
 ﻿using OGNAnalyser.Client.Models;
 using OGNAnalyser.Core.Util;
+using OGNAnalyser.Tests.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +11,6 @@ namespace OGNAnalyser.Tests.Analyser
 {
     public class GeoPositionTests
     {
-        private class SimpleGeoPos : IGeographicPosition
-        {
-            public double PositionLatDegrees { get; set; }
-            public double PositionLonDegrees { get; set; }
-            public int PositionAltitudeMeters { get; set; }
-        }
-
         [Theory]
         [InlineData(0d, 0d, 0d, 0d, 0d)]
         [InlineData(47.1717d, 9.0394d, 47.3764d, 8.7575d, 31151d)] // schaenis / fehraltorf
