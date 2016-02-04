@@ -8,7 +8,7 @@ using System.Timers;
 
 namespace OGNAnalyser.Core.Analysis
 {
-    public class AircraftTrackAnalyser
+    public class AircraftTrackAnalyser : IDisposable
     {
         private const int aircraftBuffersCapacity = 60;
         private const int maxAircraftTrackAnalysisSecs = 180;
@@ -92,6 +92,12 @@ namespace OGNAnalyser.Core.Analysis
             var nowUtc = DateTime.Now.ToUniversalTime();
             foreach (var row in aircraftBuffer.Select(b => new { id = b.Key, type = b.Value.First().AircraftType, lastSpeed = b.Value.First().GroundSpeedMs, lastTrack = b.Value.First().TrackDegrees, lastBeaconSecsAgo = nowUtc.Subtract(b.Value.First().PositionTimeUTC).TotalSeconds }))
                 Console.WriteLine($"\t{row.id:X} {row.type}\t: ({Math.Round(row.lastBeaconSecsAgo, 1)}s ago) {row.lastSpeed}ms ({Math.Round(row.lastSpeed * 3.6f, 1)}km/h) - {row.lastTrack}°");
+        }
+
+        public void Dispose()
+        {
+            if(bufferAnalysisTimer != null)
+                bufferAnalysisTimer.Dispose();
         }
     }
 }

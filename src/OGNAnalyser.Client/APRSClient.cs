@@ -1,4 +1,5 @@
-﻿using OGNAnalyser.Client.Models;
+﻿using Microsoft.Extensions.Logging;
+using OGNAnalyser.Client.Models;
 using OGNAnalyser.Client.Parser;
 using OGNAnalyser.Client.Util;
 using System;
@@ -22,6 +23,7 @@ namespace OGNAnalyser.Client
 
         public readonly byte[] buffer = new byte[bufferSize];
 
+        private ILogger log;
         private Socket socket;
         private string server;
         private int port;
@@ -39,7 +41,16 @@ namespace OGNAnalyser.Client
 
         private Timer keepAlivePingTimer = null;
 
-        public APRSClient(string server, int port, string username, float filterLat, float filterLon, float filterRadius, string password = "-1")
+        public APRSClient(ILoggerFactory loggerFactory)
+        {
+            if (socket != null)
+                Dispose();
+
+            log = loggerFactory.CreateLogger<APRSClient>();
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        }
+
+        public void Configure(string server, int port, string username, float filterLat, float filterLon, float filterRadius, string password = "-1")
         {
             this.server = server;
             this.port = port;
@@ -49,10 +60,11 @@ namespace OGNAnalyser.Client
             this.filterLon = filterLon;
             this.filterRadius = filterRadius;
 
-            if (socket != null)
-                Dispose();
+            log.LogInformation("APRS Client configured: {0}:{1} ({2}) - filter: lat {3} / lon {4} / radius {5}", server, port, username, filterLat, filterLon, filterRadius);
+        }
 
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        public void Run()
+        {
             socket.Connect(server, port);
 
             // Begin receiving the data from the remote device.
@@ -66,6 +78,8 @@ namespace OGNAnalyser.Client
                     socket.Send(Encoding.ASCII.GetBytes($"# {swInfo} - {swVersion}"));
             };
             keepAlivePingTimer.Start();
+
+            log.LogInformation("APRS Client started: keep alive ping time: {0}ms", keepAlivePingMillis);
         }
 
         public void Dispose()
@@ -77,6 +91,8 @@ namespace OGNAnalyser.Client
                 keepAlivePingTimer.Stop();
 
             socket = null;
+
+            log.LogInformation("APRS Client stopped.");
         }
 
         private void receivedCallback(IAsyncResult ar)
@@ -122,7 +138,7 @@ namespace OGNAnalyser.Client
                             }
                             catch (BeaconParserException e)
                             {
-                                Console.Error.WriteLine($"Problem matching line: {e.StringPartParsing}");
+                                log.LogWarning("Problem matching APRS line: {0}", e.StringPartParsing);
                             }
                         }
                         else
