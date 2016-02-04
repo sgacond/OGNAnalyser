@@ -6,18 +6,27 @@ using System.Threading.Tasks;
 
 namespace OGNAnalyser.Core.Analysis
 {
-    public class AircraftBeaconSpeedAndTrack
+    public class AircraftBeaconSpeedAndTrack : AircraftBeacon
     {
-        public AircraftBeacon Beacon { get; internal set; }
-
         public bool Analysed { get; internal set; }
         public float GroundSpeedMs { get; internal set; }
         public float TrackDegrees { get; internal set; }
 
-        public AircraftBeaconSpeedAndTrack(Client.Models.AircraftBeacon beacon)
+        public AircraftBeaconSpeedAndTrack(AircraftBeacon beacon)
         {
             Analysed = false;
-            Beacon = beacon;
+            AircraftId = beacon.AircraftId;
+            PositionLatDegrees = beacon.PositionLatDegrees;
+            PositionLonDegrees = beacon.PositionLonDegrees;
+            PositionAltitudeMeters = beacon.PositionAltitudeMeters;
+            PositionTimeUTC = beacon.PositionTimeUTC;
+            RotationRateHalfTurnPerTwoMins = beacon.RotationRateHalfTurnPerTwoMins;
+            ClimbRateMetersPerSecond = beacon.ClimbRateMetersPerSecond;
+            SignalNoiseRatioDb = beacon.SignalNoiseRatioDb;
+            TransmissionErrorsCorrected = beacon.TransmissionErrorsCorrected;
+            CenterFrequencyOffsetKhz = beacon.CenterFrequencyOffsetKhz;
+            GpsSatellitesVisible = beacon.GpsSatellitesVisible;
+            GpsSatelliteChannelsAvailable = beacon.GpsSatelliteChannelsAvailable;
         }
     }
 
@@ -34,6 +43,8 @@ namespace OGNAnalyser.Core.Analysis
 
         public DateTime EventDateTimeUTC { get; internal set; }
         
+        public AircraftBeaconSpeedAndTrack ReferenceBeacon { get; internal set; }
+
         public int CompareTo(AircraftTrackEvent other)
         {
             var diffSecs = other.EventDateTimeUTC.Subtract(EventDateTimeUTC).TotalSeconds;
@@ -47,7 +58,7 @@ namespace OGNAnalyser.Core.Analysis
             return -1;
         }
     }
-
+    
     public class AircraftTrackEventComparer : IEqualityComparer<AircraftTrackEvent>
     {
         public bool Equals(AircraftTrackEvent x, AircraftTrackEvent y)
@@ -58,6 +69,20 @@ namespace OGNAnalyser.Core.Analysis
         public int GetHashCode(AircraftTrackEvent obj)
         {
             return obj.EventDateTimeUTC.GetHashCode() & obj.EventType.GetHashCode();
+        }
+    }
+
+    internal class AirfieldSubscription
+    {
+        public string AirfieldKey { get; internal set; }
+        public IGeographicPosition AirfieldPosition { get; internal set; }
+        public List<AircraftTrackEvent> Events { get; internal set; }
+        internal event Action<AircraftTrackEvent> EventDetected;
+
+        internal void FireEventDetected(AircraftTrackEvent evt)
+        {
+            if (EventDetected != null)
+                EventDetected(evt);
         }
     }
 }

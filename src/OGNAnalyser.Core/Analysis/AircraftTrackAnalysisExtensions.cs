@@ -15,8 +15,8 @@ namespace OGNAnalyser.Core.Analysis
         private const double onGroundAltitudeThresholdMeters = 60;
         private const double airportRangeRadiusMeters = 2000d;
         private static bool isMoving(this AircraftBeaconSpeedAndTrack beacon) => beacon.GroundSpeedMs > movingSpeedThresholdMs;
-        private static bool isStoppedOnGround(this AircraftBeaconSpeedAndTrack beacon, int groundAltMeters) => beacon.GroundSpeedMs <= movingSpeedThresholdMs && Math.Abs(beacon.Beacon.PositionAltitudeMeters - groundAltMeters) < onGroundAltitudeThresholdMeters;
-        private static bool isWithinRefPositionRange(this AircraftBeaconSpeedAndTrack beacon, IGeographicPosition refPos) => beacon.Beacon.DistanceToGeoPositionMeters(refPos) <= airportRangeRadiusMeters;
+        private static bool isStoppedOnGround(this AircraftBeaconSpeedAndTrack beacon, int groundAltMeters) => beacon.GroundSpeedMs <= movingSpeedThresholdMs && Math.Abs(beacon.PositionAltitudeMeters - groundAltMeters) < onGroundAltitudeThresholdMeters;
+        private static bool isWithinRefPositionRange(this AircraftBeaconSpeedAndTrack beacon, IGeographicPosition refPos) => beacon.DistanceToGeoPositionMeters(refPos) <= airportRangeRadiusMeters;
 
         public static void AnalyseSpeedAndTrack(this CircularFifoBuffer<AircraftBeaconSpeedAndTrack> fifoBuffer, DateTime evalDateTimeUtc, TimeSpan maxTimeSpan)
         {
@@ -25,12 +25,12 @@ namespace OGNAnalyser.Core.Analysis
             var lagBeacon = recalc.First();
             foreach (var beacon in recalc.Skip(1))
             {
-                var dTime = beacon.Beacon.PositionTimeUTC.Subtract(lagBeacon.Beacon.PositionTimeUTC).TotalSeconds;
+                var dTime = beacon.PositionTimeUTC.Subtract(lagBeacon.PositionTimeUTC).TotalSeconds;
                 if (dTime <= 0)
                     continue;
 
-                beacon.GroundSpeedMs = (float)Math.Round(beacon.Beacon.DistanceToGeoPositionMeters(lagBeacon.Beacon) / dTime, 2);
-                beacon.TrackDegrees = lagBeacon.Beacon.InitialBearingToGeoPositionDegrees(beacon.Beacon);
+                beacon.GroundSpeedMs = (float)Math.Round(beacon.DistanceToGeoPositionMeters(lagBeacon) / dTime, 2);
+                beacon.TrackDegrees = lagBeacon.InitialBearingToGeoPositionDegrees(beacon);
                 lagBeacon = beacon;
             }
         }
@@ -51,7 +51,7 @@ namespace OGNAnalyser.Core.Analysis
                 var subWindow = evalWindow.Skip(i).Take(4).ToArray();
 
                 // accuracy check
-                if (subWindow[3].Beacon.PositionTimeUTC.Subtract(subWindow[0].Beacon.PositionTimeUTC).TotalSeconds > accuracyCheck4BeaconsMaxTimeSpanSeconds)
+                if (subWindow[3].PositionTimeUTC.Subtract(subWindow[0].PositionTimeUTC).TotalSeconds > accuracyCheck4BeaconsMaxTimeSpanSeconds)
                     continue;
                 
                 bool landing = subWindow[0].isMoving()
@@ -62,7 +62,7 @@ namespace OGNAnalyser.Core.Analysis
                             && subWindow[3].isWithinRefPositionRange(eventTargetCenter);
 
                 if (landing)
-                    events.Add(new AircraftTrackEvent { EventType = AircraftTrackEventTypes.Landing, EventDateTimeUTC = subWindow[2].Beacon.PositionTimeUTC });
+                    events.Add(new AircraftTrackEvent { EventType = AircraftTrackEventTypes.Landing, EventDateTimeUTC = subWindow[2].PositionTimeUTC, ReferenceBeacon = subWindow[2] });
 
                 bool takeOff = subWindow[0].isStoppedOnGround(eventTargetCenter.PositionAltitudeMeters)
                             && subWindow[0].isWithinRefPositionRange(eventTargetCenter)
@@ -72,10 +72,10 @@ namespace OGNAnalyser.Core.Analysis
                             && subWindow[3].isMoving();
 
                 if (takeOff)
-                    events.Add(new AircraftTrackEvent { EventType = AircraftTrackEventTypes.TakeOff, EventDateTimeUTC = subWindow[1].Beacon.PositionTimeUTC });
+                    events.Add(new AircraftTrackEvent { EventType = AircraftTrackEventTypes.TakeOff, EventDateTimeUTC = subWindow[1].PositionTimeUTC, ReferenceBeacon = subWindow[2] });
             }
 
-            return events;
+            return events.Distinct(new AircraftTrackEventComparer());
         }
 
         private static List<AircraftBeaconSpeedAndTrack> extractAndReverseBufferForEvalWindow(this CircularFifoBuffer<AircraftBeaconSpeedAndTrack> fifoBuffer, DateTime evalDateTimeUtc, TimeSpan maxTimeSpan, bool getAlreadyAnalysed = false)
@@ -83,7 +83,7 @@ namespace OGNAnalyser.Core.Analysis
             DateTime deadline = evalDateTimeUtc.Subtract(maxTimeSpan);
 
             // get all beacons until deadline
-            List<AircraftBeaconSpeedAndTrack> recalc = fifoBuffer.TakeWhile(b => (!b.Analysed || getAlreadyAnalysed) && b.Beacon.PositionTimeUTC >= deadline).ToList();
+            List<AircraftBeaconSpeedAndTrack> recalc = fifoBuffer.TakeWhile(b => (!b.Analysed || getAlreadyAnalysed) && b.PositionTimeUTC >= deadline).ToList();
 
             // if more are available, include one more (as lag beacon for first calculation).
             if (recalc.Count < fifoBuffer.Length)

@@ -26,7 +26,6 @@ namespace OGNAnalyser.Tests.Analyser
         [InlineData("Data\\561xx171.igc", "puimoisson", 20683, AircraftTrackEventTypes.Landing)]
         [InlineData("Data\\564xx171.igc", "puimoisson", 354, AircraftTrackEventTypes.TakeOff)]
         [InlineData("Data\\564xx171.igc", "puimoisson", 16604, AircraftTrackEventTypes.Landing)]
-
         public void EventDetectedUsingIGCFile(string path, string airfield, int landingAfterSeconds, AircraftTrackEventTypes evtType)
         {
             var beacons = IGCAircraftBeaconReader.ReadFromIGCFile(path, 0x0A000001); // simulate fifo collection
