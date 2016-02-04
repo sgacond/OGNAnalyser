@@ -31,6 +31,17 @@ namespace OGNAnalyser.Launcher
             // disposable pattern to stop on read-line.
             using (var analyser = sp.GetService<Core.OGNAnalyser>())
             {
+                // debug view
+                analyser.AnalysisIntervalElapsed += lastBeacons =>
+                {
+                    Console.Clear();
+                    Console.WriteLine("-- Analysis - Aircraft: -----------------------------------------------------------");
+                    var nowUtc = DateTime.Now.ToUniversalTime();
+                    foreach (var b in lastBeacons)
+                        Console.WriteLine($"\t{b.Key:X} {b.Value.AircraftType}\t: ({Math.Round(nowUtc.Subtract(b.Value.PositionTimeUTC).TotalSeconds, 1)}s ago) {b.Value.GroundSpeedMs}ms ({Math.Round(b.Value.GroundSpeedMs * 3.6f, 1)}km/h) - {b.Value.TrackDegrees}°");
+                    Console.WriteLine("-----------------------------------------------------------------------------------");
+                };
+
                 analyser.Run();
                 Console.ReadLine();
             }
@@ -38,7 +49,7 @@ namespace OGNAnalyser.Launcher
 
         private static void configureServices(IServiceCollection services)
         {
-            services.AddTransient<ILoggerFactory>(isp => new LoggerFactory().AddSerilog());
+            services.AddTransient<ILoggerFactory>(isp => new LoggerFactory().AddSerilog(Log.Logger));
             services.AddSingleton<Core.OGNAnalyser>();
             Core.OGNAnalyser.ConfigureServices(services);
         }

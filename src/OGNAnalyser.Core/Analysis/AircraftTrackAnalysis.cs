@@ -18,6 +18,7 @@ namespace OGNAnalyser.Core.Analysis
         private Timer bufferAnalysisTimer = new Timer(bufferAnalysisTimerIntervalMillis);
         private Dictionary<string, AirfieldSubscription> airfieldSubscriptions = new Dictionary<string, AirfieldSubscription>();
 
+        public event Action<IDictionary<uint, AircraftBeaconSpeedAndTrack>> AnalysisIntervalElapsed;
         public event Action<string, AircraftTrackEvent> EventDetected;
 
         public AircraftTrackAnalyser()
@@ -86,12 +87,8 @@ namespace OGNAnalyser.Core.Analysis
                 }
             }
 
-            // TODO: REMOVE - just for debugging visualsation. maybe introduce an event?
-            Console.Clear();
-            Console.WriteLine("Analysis - Aircraft:");
-            var nowUtc = DateTime.Now.ToUniversalTime();
-            foreach (var row in aircraftBuffer.Select(b => new { id = b.Key, type = b.Value.First().AircraftType, lastSpeed = b.Value.First().GroundSpeedMs, lastTrack = b.Value.First().TrackDegrees, lastBeaconSecsAgo = nowUtc.Subtract(b.Value.First().PositionTimeUTC).TotalSeconds }))
-                Console.WriteLine($"\t{row.id:X} {row.type}\t: ({Math.Round(row.lastBeaconSecsAgo, 1)}s ago) {row.lastSpeed}ms ({Math.Round(row.lastSpeed * 3.6f, 1)}km/h) - {row.lastTrack}°");
+            if (AnalysisIntervalElapsed != null)
+                AnalysisIntervalElapsed(aircraftBuffer.ToDictionary(ab => ab.Key, ab => ab.Value.First()));
         }
 
         public void Dispose()

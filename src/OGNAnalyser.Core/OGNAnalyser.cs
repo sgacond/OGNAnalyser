@@ -3,6 +3,7 @@ using OGNAnalyser.Client;
 using OGNAnalyser.Core.Analysis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 
 namespace OGNAnalyser.Core
 {
@@ -11,6 +12,18 @@ namespace OGNAnalyser.Core
         private ILogger log;
         private APRSClient client;
         private AircraftTrackAnalyser analyser;
+
+        public event Action<IDictionary<uint, AircraftBeaconSpeedAndTrack>> AnalysisIntervalElapsed
+        {
+            add { analyser.AnalysisIntervalElapsed += value; }
+            remove { analyser.AnalysisIntervalElapsed -= value; }
+        }
+
+        public event Action<string, AircraftTrackEvent> EventDetected
+        {
+            add { analyser.EventDetected += value; }
+            remove { analyser.EventDetected -= value; }
+        }
 
         public static void ConfigureServices(IServiceCollection sp)
         {
@@ -33,9 +46,9 @@ namespace OGNAnalyser.Core
             // push to analyser
             client.AircraftBeaconReceived += b => analyser.AddAircraftBeacon(b);
 
-            // console loggers
-            client.AircraftBeaconReceived += b => log.LogInformation($"AIRCRAFT: {b.AircraftId}, {b.PositionTimeUTC}, {b.PositionLatDegrees}, {b.PositionLonDegrees}, {b.PositionAltitudeMeters}, {b.ClimbRateMetersPerSecond}, {b.RotationRateHalfTurnPerTwoMins}");
-            client.ReceiverBeaconReceived += b => log.LogInformation($"Receiver: {b.BeaconSender}, {b.PositionTimeUTC}, {b.PositionLatDegrees}, {b.PositionLonDegrees}, {b.PositionAltitudeMeters}, {b.SystemInfo}");
+            // loggers
+            client.AircraftBeaconReceived += b => log.LogVerbose("AIRCRAFT: {0}, {1}, {2}, {3}, {4}, {5}, {6}", b.AircraftId, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.ClimbRateMetersPerSecond, b.RotationRateHalfTurnPerTwoMins);
+            client.ReceiverBeaconReceived += b => log.LogVerbose("Receiver: {0}, {1}, {2}, {3}, {4}, {5}", b.BeaconSender, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.SystemInfo);
 
             log.LogInformation("OGN Analyser started.");
         }
