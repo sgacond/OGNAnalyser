@@ -21,17 +21,19 @@ namespace OGNAnalyser.Launcher
 
             // logger factory for program.cs - startup case
             var log = new LoggerFactory().AddSerilog().CreateLogger(typeof(Program).FullName);
-            log.LogInformation("Starting from console launcher...");
-
-
+            log.LogInformation("Starting from console launcher... press enter to stop.");
+            
+            // use microsofts built in simple DI container.
             var services = new ServiceCollection();
             configureServices(services);
             var sp = services.BuildServiceProvider();
-            
-            var analyser = sp.GetService<Core.OGNAnalyser>();
-            analyser.Run();
 
-            Console.ReadLine();
+            // disposable pattern to stop on read-line.
+            using (var analyser = sp.GetService<Core.OGNAnalyser>())
+            {
+                analyser.Run();
+                Console.ReadLine();
+            }
         }
 
         private static void configureServices(IServiceCollection services)

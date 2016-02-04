@@ -97,7 +97,7 @@ namespace OGNAnalyser.Client
 
         private void receivedCallback(IAsyncResult ar)
         {
-            if (!socket.Connected)
+            if (socket == null || !socket.Connected)
                 return;
 
             lock (receiverLock)
