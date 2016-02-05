@@ -1,15 +1,16 @@
 ﻿using System;
-using OGNAnalyser.Client;
-using OGNAnalyser.Core.Analysis;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
+using OGNAnalyser.Client;
+using OGNAnalyser.Core.Analysis;
 
 namespace OGNAnalyser.Core
 {
     public class OGNAnalyser : IDisposable
     {
         private ILogger log;
+        private OGNClientSettings settings;
         private APRSClient client;
         private AircraftTrackAnalyser analyser;
 
@@ -25,22 +26,19 @@ namespace OGNAnalyser.Core
             remove { analyser.EventDetected -= value; }
         }
 
-        public static void ConfigureServices(IServiceCollection sp)
-        {
-            sp.AddSingleton<APRSClient>();
-            sp.AddSingleton<AircraftTrackAnalyser>();
-        }
-
-        public OGNAnalyser(APRSClient client, AircraftTrackAnalyser analyser, ILoggerFactory logFactory)
+        public OGNAnalyser(APRSClient client, AircraftTrackAnalyser analyser, OGNClientSettings settings, ILoggerFactory logFactory)
         {
             log = logFactory.CreateLogger<OGNAnalyser>();
             this.client = client;
             this.analyser = analyser;
+            this.settings = settings;
         }
 
         public void Run()
         {
-            client.Configure("glidern1.glidernet.org", 14580, "sgtest", 47.170869f, 9.039742f, 150);
+            // load from config provider
+            client.Configure(settings.OgnServer, settings.OgnPort, settings.OgnUsername, settings.Filter.CenterLatDegrees, settings.Filter.CenterLonDegrees, settings.Filter.RadiusKm);
+            
             client.Run();
 
             // push to analyser
@@ -62,6 +60,17 @@ namespace OGNAnalyser.Core
                 analyser.Dispose();
 
             log.LogInformation("OGN Analyser stopped.");
+        }
+    }
+
+    public static class OGNAnalyserStartupExtensions
+    {
+        public static IServiceCollection AddOgnAnalyserServices(this IServiceCollection sp, OGNClientSettings settings)
+        {
+            sp.AddSingleton<APRSClient>();
+            sp.AddSingleton<AircraftTrackAnalyser>();
+            sp.AddSingleton<OGNClientSettings>(r => settings);
+            return sp;
         }
     }
 }

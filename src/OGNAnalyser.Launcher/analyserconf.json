@@ -1,0 +1,12 @@
+﻿{
+  "client": {
+    "ognServer": "glidern1.glidernet.org",
+    "ognUsername": "sgtest",
+    "ognPort": 14580,
+    "filter": {
+      "centerLatDegrees": 47.170869,
+      "centerLonDegrees": 9.039742,
+      "radiusKm": 150
+    }
+  }
+}
