@@ -41,12 +41,20 @@ namespace OGNAnalyser.Core
             
             client.Run();
 
+
+
+
+
             // push to analyser
             client.AircraftBeaconReceived += b => analyser.AddAircraftBeacon(b);
 
+
+
+
+
             // loggers
-            client.AircraftBeaconReceived += b => log.LogVerbose("AIRCRAFT: {0}, {1}, {2}, {3}, {4}, {5}, {6}", b.AircraftId, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.ClimbRateMetersPerSecond, b.RotationRateHalfTurnPerTwoMins);
             client.ReceiverBeaconReceived += b => log.LogVerbose("Receiver: {0}, {1}, {2}, {3}, {4}, {5}", b.BeaconSender, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.SystemInfo);
+            client.AircraftBeaconReceived += b => log.LogVerbose("AIRCRAFT: {0}, {1}, {2}, {3}, {4}, {5}, {6}", b.AircraftId, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.ClimbRateMetersPerSecond, b.RotationRateHalfTurnPerTwoMins);
 
             log.LogInformation("OGN Analyser started.");
         }
