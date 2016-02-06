@@ -41,6 +41,7 @@ namespace OGNAnalyser.Core
             
             client.Run();
 
+
             // push to analyser
             client.AircraftBeaconReceived += b => analyser.AddAircraftBeacon(b);
 
