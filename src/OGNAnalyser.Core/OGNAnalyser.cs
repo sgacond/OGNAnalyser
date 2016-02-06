@@ -42,6 +42,7 @@ namespace OGNAnalyser.Core
             client.Run();
             
 
+
             // push to analyser
             client.AircraftBeaconReceived += b => analyser.AddAircraftBeacon(b);
             
@@ -72,6 +73,9 @@ namespace OGNAnalyser.Core
             sp.AddSingleton<APRSClient>();
             sp.AddSingleton<AircraftTrackAnalyser>();
             sp.AddSingleton<OGNClientSettings>(r => settings);
+
+            // neuer kommentar.
+
             return sp;
         }
     }
