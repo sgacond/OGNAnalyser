@@ -8,6 +8,10 @@ using System.Timers;
 
 namespace OGNAnalyser.Core.Analysis
 {
+    /// <summary>
+    /// Analysis of aircraft tracks. Runs an internal analysis timer to get the latest unanalysed beacons and adds
+    /// track and speed information.
+    /// </summary>
     public class AircraftTrackAnalyser : IDisposable
     {
         private const int aircraftBuffersCapacity = 60;
@@ -20,13 +24,20 @@ namespace OGNAnalyser.Core.Analysis
 
         public event Action<IDictionary<uint, AircraftBeaconSpeedAndTrack>> AnalysisIntervalElapsed;
         public event Action<string, AircraftTrackEvent> EventDetected;
-
+        
+        /// <summary>
+        /// Initializes and starts the analysis interval.
+        /// </summary>
         public AircraftTrackAnalyser()
         {
             bufferAnalysisTimer.Elapsed += analysisTimerElapsed;
             bufferAnalysisTimer.Start();
         }
 
+        /// <summary>
+        /// Call when new aircraft beacon detected.
+        /// </summary>
+        /// <param name="beacon">detected beacon</param>
         public void AddAircraftBeacon(AircraftBeacon beacon)
         {
             if (!aircraftBuffer.ContainsKey(beacon.AircraftAddress))
@@ -35,11 +46,22 @@ namespace OGNAnalyser.Core.Analysis
             aircraftBuffer[beacon.AircraftAddress].Enqueue(new AircraftBeaconSpeedAndTrack(beacon));
         }
 
+        /// <summary>
+        /// Returns already analysed path for further analysis.
+        /// </summary>
+        /// <param name="aircraftId">parsed aircraft id to identify beacons</param>
+        /// <returns></returns>
         public IEnumerable<AircraftBeaconSpeedAndTrack> GetAircraftAnalysedPath(uint aircraftId)
         {
             return aircraftBuffer[aircraftId].SkipWhile(a => !a.Analysed);
         }
 
+        /// <summary>
+        /// Subscribe an observation point (lat / lon / elevation) and attach a callback for detected events.
+        /// </summary>
+        /// <param name="airfieldKey">a definable key</param>
+        /// <param name="airfieldPosition">position and elevation of the observation point (usually an airfield)</param>
+        /// <param name="eventDetectedCallback">callback on event detected</param>
         public void SubscribeAirfieldForMovmentEvents(string airfieldKey, IGeographicPosition airfieldPosition, Action<AircraftTrackEvent> eventDetectedCallback = null)
         {
             if(airfieldSubscriptions.ContainsKey(airfieldKey))
@@ -90,7 +112,9 @@ namespace OGNAnalyser.Core.Analysis
             if (AnalysisIntervalElapsed != null)
                 AnalysisIntervalElapsed(aircraftBuffer.ToDictionary(ab => ab.Key, ab => ab.Value.First()));
         }
-
+        /// <summary>
+        /// Disposes the analysis timer.
+        /// </summary>
         public void Dispose()
         {
             if(bufferAnalysisTimer != null)
