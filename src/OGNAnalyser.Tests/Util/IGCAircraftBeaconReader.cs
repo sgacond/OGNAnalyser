@@ -1,4 +1,5 @@
-﻿using OGNAnalyser.Client.Models;
+﻿using Microsoft.Extensions.PlatformAbstractions;
+using OGNAnalyser.Client.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,11 +17,14 @@ namespace OGNAnalyser.Tests
 
         public static IEnumerable<AircraftBeacon> ReadFromIGCFile(string path, ulong acftId)
         {
+            var basePath = PlatformServices.Default.Application.ApplicationBasePath;
+            var pathResoved = Path.Combine(basePath, path);
+
             var beacons = new List<AircraftBeacon>();
             int lagAlt = 0;
             DateTime lagDt = DateTime.MinValue;
 
-            foreach (var line in File.ReadLines(path))
+            foreach (var line in File.ReadLines(pathResoved))
             {
                 var match = bRecordMatchRegex.Match(line);
                 if (!match.Success)
