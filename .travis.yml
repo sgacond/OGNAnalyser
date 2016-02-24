@@ -1,8 +1,10 @@
 language: csharp
-mono:
-- beta
-sudo: false
-install: curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh
-  | sh && source ~/.dnx/dnvm/dnvm.sh && dnvm upgrade
+
+install:
+   - curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh | DNX_BRANCH=dev sh && source ~/.dnx/dnvm/dnvm.sh
+   - dnvm upgrade -r mono
+   - dnu restore
+   
 script:
-- ". ./build.sh"
+   - dnu build ./src/OGNAnalyser.Tests/project.json
+   #- dnx -p ./src/SchwabenCode.FlexMapper.UnitTests test
