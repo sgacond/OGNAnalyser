@@ -18,7 +18,7 @@ namespace OGNAnalyser.Tests
         public static IEnumerable<AircraftBeacon> ReadFromIGCFile(string path, ulong acftId)
         {
             var basePath = PlatformServices.Default.Application.ApplicationBasePath;
-            var pathResoved = Path.Combine(basePath, path);
+            var pathResoved = Path.Combine(basePath, path.Replace('\\', Path.DirectorySeparatorChar));
 
             var beacons = new List<AircraftBeacon>();
             int lagAlt = 0;
