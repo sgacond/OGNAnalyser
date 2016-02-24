@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Timers;
-using static System.FormattableString;
 
 namespace OGNAnalyser.Client
 {
@@ -69,7 +68,7 @@ namespace OGNAnalyser.Client
 
             // Begin receiving the data from the remote device.
             socket.BeginReceive(buffer, 0, bufferSize, 0, new AsyncCallback(receivedCallback), null);
-            socket.Send(Encoding.ASCII.GetBytes(Invariant($"user {username} pass {password} vers {swInfo} {swVersion} filter r/{filterLat:#.######}/{filterLon:#.######}/{filterRadius:#}\n")));
+            socket.Send(Encoding.ASCII.GetBytes($"user {username} pass {password} vers {swInfo} {swVersion} filter r/{filterLat:#.######}/{filterLon:#.######}/{filterRadius:#}\n"));
 
             keepAlivePingTimer = new Timer(keepAlivePingMillis);
             keepAlivePingTimer.Elapsed += (s, e) =>

@@ -7,4 +7,4 @@ install:
    
 script:
    - dnu build ./src/OGNAnalyser.Tests/project.json
-   #- dnx -p ./src/SchwabenCode.FlexMapper.UnitTests test
+   - dnx -p ./src/OGNAnalyser.Tests test
