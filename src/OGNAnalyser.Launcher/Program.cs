@@ -10,6 +10,7 @@ using OGNAnalyser.Core;
 using OGNAnalyser.Core.Analysis;
 using System.Timers;
 using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace OGNAnalyser.Launcher
 {
@@ -28,10 +29,12 @@ namespace OGNAnalyser.Launcher
             log.LogInformation("Starting from console launcher... press enter to stop.");
 
             // load config
-            var config = new ConfigurationBuilder()
-                            .AddJsonFile("analyserconf.json")
-                            .Build();
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("analyserconf.json", optional: true, reloadOnChange: true);
 
+            IConfigurationRoot config = builder.Build();
+            
             // use microsofts built in simple DI container.
             var services = new ServiceCollection();
             configureServices(services, config);
@@ -94,7 +97,11 @@ namespace OGNAnalyser.Launcher
         {
             services.AddTransient<ILoggerFactory>(isp => new LoggerFactory().AddSerilog(Log.Logger));
             services.AddSingleton<Core.OGNAnalyser>();
-            services.AddOgnAnalyserServices(config.Get<OGNClientSettings>("client"));
+
+            var ognClientSettings = new OGNClientSettings();
+            config.GetSection("client").Bind(ognClientSettings);
+
+            services.AddOgnAnalyserServices(ognClientSettings);
         }
     }
 }

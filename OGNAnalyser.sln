@@ -1,22 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BF4D455A-283F-447A-B919-7590F1C62B38}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9A7C53F6-8C63-4314-B772-A13F80CA7558}"
-	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
-	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyser.Launcher", "src\OGNAnalyser.Launcher\OGNAnalyser.Launcher.xproj", "{1958A86F-0469-4A10-8B0C-B2C43D498DF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OGNAnalyser.Launcher", "src\OGNAnalyser.Launcher\OGNAnalyser.Launcher.csproj", "{1958A86F-0469-4A10-8B0C-B2C43D498DF2}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyser.Core", "src\OGNAnalyser.Core\OGNAnalyser.Core.xproj", "{20897E98-A0E7-41E6-92A6-3741C73E402A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OGNAnalyser.Core", "src\OGNAnalyser.Core\OGNAnalyser.Core.csproj", "{20897E98-A0E7-41E6-92A6-3741C73E402A}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyser.Tests", "src\OGNAnalyser.Tests\OGNAnalyser.Tests.xproj", "{B50E99E3-B601-4469-AE26-5CDC28E9FB37}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OGNAnalyser.Tests", "src\OGNAnalyser.Tests\OGNAnalyser.Tests.csproj", "{B50E99E3-B601-4469-AE26-5CDC28E9FB37}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OGNAnalyser.Client", "src\OGNAnalyser.Client\OGNAnalyser.Client.xproj", "{FD8297E2-F3D0-412C-A339-D7651DC9BEED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OGNAnalyser.Client", "src\OGNAnalyser.Client\OGNAnalyser.Client.csproj", "{FD8297E2-F3D0-412C-A339-D7651DC9BEED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,5 +46,8 @@ Global
 		{20897E98-A0E7-41E6-92A6-3741C73E402A} = {BF4D455A-283F-447A-B919-7590F1C62B38}
 		{B50E99E3-B601-4469-AE26-5CDC28E9FB37} = {BF4D455A-283F-447A-B919-7590F1C62B38}
 		{FD8297E2-F3D0-412C-A339-D7651DC9BEED} = {BF4D455A-283F-447A-B919-7590F1C62B38}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6D2473D1-7D96-4790-B52C-7C8919A9DEFA}
 	EndGlobalSection
 EndGlobal
