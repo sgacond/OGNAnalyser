@@ -1,10 +1,6 @@
 language: csharp
-
-install:
-   - curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh | DNX_BRANCH=dev sh && source ~/.dnx/dnvm/dnvm.sh
-   - dnvm upgrade -r mono
-   - dnu restore
-   
+mono: none
+dotnet: 2.0.0
 script:
-   - dnu build ./src/OGNAnalyser.Tests/project.json
-   - dnx -p ./src/OGNAnalyser.Tests test
+   - dotnet restore
+   - dotnet test ./src/OGNAnalyser.Tests
