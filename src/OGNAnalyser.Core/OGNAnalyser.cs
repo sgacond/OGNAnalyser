@@ -4,74 +4,60 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using OGNAnalyser.Client;
 using OGNAnalyser.Core.Analysis;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace OGNAnalyser.Core
 {
-    public class OGNAnalyser : IDisposable
+    internal class OGNAnalyser : IOGNAnalyser
     {
-        private ILogger log;
-        private OGNClientSettings settings;
-        private APRSClient client;
-        private AircraftTrackAnalyser analyser;
+        private ILogger _log;
+        private OGNAnalyserSettings _settings;
+        private IAPRSClient _client;
+        private AircraftTrackAnalyser _analyser;
 
         public event Action<IDictionary<uint, AircraftBeaconSpeedAndTrack>> AnalysisIntervalElapsed
         {
-            add { analyser.AnalysisIntervalElapsed += value; }
-            remove { analyser.AnalysisIntervalElapsed -= value; }
+            add { _analyser.AnalysisIntervalElapsed += value; }
+            remove { _analyser.AnalysisIntervalElapsed -= value; }
         }
 
         public event Action<string, AircraftTrackEvent> EventDetected
         {
-            add { analyser.EventDetected += value; }
-            remove { analyser.EventDetected -= value; }
+            add { _analyser.EventDetected += value; }
+            remove { _analyser.EventDetected -= value; }
         }
 
-        public OGNAnalyser(APRSClient client, AircraftTrackAnalyser analyser, OGNClientSettings settings, ILoggerFactory logFactory)
+        public OGNAnalyser(IAPRSClient client, OGNAnalyserSettings settings, ILogger log)
         {
-            log = logFactory.CreateLogger<OGNAnalyser>();
-            this.client = client;
-            this.analyser = analyser;
-            this.settings = settings;
+            _log = log ?? NullLogger.Instance;
+            _client = client;
+            _analyser = new AircraftTrackAnalyser();
+            _settings = settings;
         }
 
         public void Run()
         {
-            // load from config provider
-            client.Configure(settings.OgnServer, settings.OgnPort, settings.OgnUsername, settings.Filter.CenterLatDegrees, settings.Filter.CenterLonDegrees, settings.Filter.RadiusKm);
-            
-            client.Run();
+            _client.Run();
 
             // push to analyser
-            client.AircraftBeaconReceived += b => analyser.AddAircraftBeacon(b);
+            _client.AircraftBeaconReceived += b => _analyser.AddAircraftBeacon(b);
             
             // loggersa akjsdh askjh kasjdhaksjd 
-            client.ReceiverBeaconReceived += b => log.LogTrace("Receiver: {0}, {1}, {2}, {3}, {4}, {5}", b.BeaconSender, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.SystemInfo);
-            client.AircraftBeaconReceived += b => log.LogTrace("AIRCRAFT: {0}, {1}, {2}, {3}, {4}, {5}, {6}", b.AircraftId, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.ClimbRateMetersPerSecond, b.RotationRateHalfTurnPerTwoMins);
+            _client.ReceiverBeaconReceived += b => _log.LogTrace("Receiver: {0}, {1}, {2}, {3}, {4}, {5}", b.BeaconSender, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.SystemInfo);
+            _client.AircraftBeaconReceived += b => _log.LogTrace("AIRCRAFT: {0}, {1}, {2}, {3}, {4}, {5}, {6}", b.AircraftId, b.PositionTimeUTC, b.PositionLatDegrees, b.PositionLonDegrees, b.PositionAltitudeMeters, b.ClimbRateMetersPerSecond, b.RotationRateHalfTurnPerTwoMins);
 
-            log.LogInformation("OGN Analyser started.");
+            _log.LogInformation("OGN Analyser started.");
         }
 
         public void Dispose()
         {
-            if (client != null)
-                client.Dispose();
+            if (_client != null)
+                _client.Dispose();
 
-            if (analyser != null)
-                analyser.Dispose();
+            if (_analyser != null)
+                _analyser.Dispose();
 
-            log.LogInformation("OGN Analyser stopped.");
-        }
-    }
-
-    public static class OGNAnalyserStartupExtensions
-    {
-        public static IServiceCollection AddOgnAnalyserServices(this IServiceCollection sp, OGNClientSettings settings)
-        {
-            sp.AddSingleton<APRSClient>();
-            sp.AddSingleton<AircraftTrackAnalyser>();
-            sp.AddSingleton<OGNClientSettings>(r => settings);
-
-            return sp;
+            _log.LogInformation("OGN Analyser stopped.");
         }
     }
 }

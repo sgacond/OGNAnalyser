@@ -53,8 +53,8 @@ namespace OGNAnalyser.Client.Models
         public float SignalNoiseRatioDb { get; set; }
         public int TransmissionErrorsCorrected { get; set; }
         public float CenterFrequencyOffsetKhz { get; set; }
-        public int GpsSatellitesVisible { get; set; }
-        public int GpsSatelliteChannelsAvailable { get; set; }
+        public int? GpsSatellitesVisible { get; set; }
+        public int? GpsSatelliteChannelsAvailable { get; set; }
 
         // -- id bits and mask ----------------------------------------------------------------
         // according: http://wiki.glidernet.org/wiki:subscribe-to-ogn-data

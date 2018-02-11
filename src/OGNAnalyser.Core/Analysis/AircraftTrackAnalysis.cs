@@ -3,7 +3,6 @@ using OGNAnalyser.Core.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Timers;
 
 namespace OGNAnalyser.Core.Analysis
@@ -12,7 +11,7 @@ namespace OGNAnalyser.Core.Analysis
     /// Analysis of aircraft tracks. Runs an internal analysis timer to get the latest unanalysed beacons and adds
     /// track and speed information.
     /// </summary>
-    public class AircraftTrackAnalyser : IDisposable
+    internal class AircraftTrackAnalyser : IDisposable
     {
         private const int aircraftBuffersCapacity = 60;
         private const int maxAircraftTrackAnalysisSecs = 180;
@@ -30,7 +29,7 @@ namespace OGNAnalyser.Core.Analysis
         /// </summary>
         public AircraftTrackAnalyser()
         {
-            bufferAnalysisTimer.Elapsed += analysisTimerElapsed;
+            bufferAnalysisTimer.Elapsed += AnalysisTimerElapsed;
             bufferAnalysisTimer.Start();
         }
 
@@ -80,7 +79,7 @@ namespace OGNAnalyser.Core.Analysis
             airfieldSubscriptions.Add(airfieldKey, subscription);
         }
 
-        private void analysisTimerElapsed(object sender, ElapsedEventArgs args)
+        private void AnalysisTimerElapsed(object sender, ElapsedEventArgs args)
         {
             foreach (var acft in aircraftBuffer.Values)
             {
@@ -103,14 +102,12 @@ namespace OGNAnalyser.Core.Analysis
                         airfieldSubscription.Events.Add(newEvent);
                         airfieldSubscription.FireEventDetected(newEvent);
 
-                        if (EventDetected != null)
-                            EventDetected(airfieldSubscription.AirfieldKey, newEvent);
+                        EventDetected?.Invoke(airfieldSubscription.AirfieldKey, newEvent);
                     }
                 }
             }
 
-            if (AnalysisIntervalElapsed != null)
-                AnalysisIntervalElapsed(aircraftBuffer.ToDictionary(ab => ab.Key, ab => ab.Value.First()));
+            AnalysisIntervalElapsed?.Invoke(aircraftBuffer.ToDictionary(ab => ab.Key, ab => ab.Value.First()));
         }
         /// <summary>
         /// Disposes the analysis timer.

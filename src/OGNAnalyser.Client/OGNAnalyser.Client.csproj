@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>OGNAnalyser.Client Class Library</Description>
     <Authors>Silvan Gacond</Authors>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>OGNAnalyser.Client</AssemblyName>
     <PackageId>OGNAnalyser.Client</PackageId>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 using Microsoft.Extensions.Logging;
 using OGNAnalyser.Core;
 using OGNAnalyser.Core.Analysis;
@@ -18,40 +17,41 @@ namespace OGNAnalyser.Launcher
     {
         public static void Main(string[] args)
         {
-            // serilog provider configuration
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.ColoredConsole()
-                .CreateLogger();
-
             // logger factory for program.cs - startup case
-            var log = new LoggerFactory().AddSerilog().CreateLogger(typeof(Program).FullName);
-            log.LogInformation("Starting from console launcher... press enter to stop.");
+            var services = new ServiceCollection();
 
             // load config
-            var builder = new ConfigurationBuilder()
+            var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("analyserconf.json", optional: true, reloadOnChange: true);
+                .AddJsonFile("analyserconf.json", optional: true, reloadOnChange: true)
+                .Build();
 
-            IConfigurationRoot config = builder.Build();
-            
-            // use microsofts built in simple DI container.
-            var services = new ServiceCollection();
-            configureServices(services, config);
+            services.AddLogging(l => l.AddConsole().AddConfiguration(config.GetSection("Logging")));
+
+            var OGNAnalyserSettings = new OGNAnalyserSettings();
+            config.GetSection("client").Bind(OGNAnalyserSettings);
+
+            services.AddOGNAnalyserServices();
+
             var sp = services.BuildServiceProvider();
+
+            var log = sp.GetService<ILogger<Program>>();
+            log.LogInformation("Starting from console launcher... press enter to stop.");
 
             IDictionary<uint, AircraftBeaconSpeedAndTrack> beaconDisplayBuffer = null;
             var events = new Dictionary<string, List<AircraftTrackEvent>>();
 
             // disposable pattern to stop on read-line.
-            using (var analyser = sp.GetService<Core.OGNAnalyser>())
+            var factory = sp.GetService<OGNAnalyserFactory>();
+            using (var analyser = factory.CreateOGNAnalyser(settings => config.GetSection("client").Bind(settings)))
             {
-                attachConsoleDisplay(beaconDisplayBuffer, events, analyser);
+                AttachConsoleDisplay(beaconDisplayBuffer, events, analyser);
+                analyser.Run();
                 Console.ReadLine();
             }
         }
 
-        private static void attachConsoleDisplay(IDictionary<uint, AircraftBeaconSpeedAndTrack> beaconDisplayBuffer, Dictionary<string, List<AircraftTrackEvent>> events, Core.OGNAnalyser analyser)
+        private static void AttachConsoleDisplay(IDictionary<uint, AircraftBeaconSpeedAndTrack> beaconDisplayBuffer, Dictionary<string, List<AircraftTrackEvent>> events, IOGNAnalyser analyser)
         {
             analyser.AnalysisIntervalElapsed += lastBeacons => { beaconDisplayBuffer = lastBeacons; };
             analyser.EventDetected += (airfieldKey, evt) =>
@@ -61,8 +61,6 @@ namespace OGNAnalyser.Launcher
                 if (!events[airfieldKey].Contains(evt, new AircraftTrackEventComparer()))
                     events[airfieldKey].Add(evt);
             };
-
-            analyser.Run();
 
             var displayTimer = new Timer(5000);
             displayTimer.Elapsed += (s, e) =>
@@ -91,17 +89,6 @@ namespace OGNAnalyser.Launcher
 
                 Console.WriteLine("-----------------------------------------------------------------------------------");
             };
-        }
-
-        private static void configureServices(IServiceCollection services, IConfigurationRoot config)
-        {
-            services.AddTransient<ILoggerFactory>(isp => new LoggerFactory().AddSerilog(Log.Logger));
-            services.AddSingleton<Core.OGNAnalyser>();
-
-            var ognClientSettings = new OGNClientSettings();
-            config.GetSection("client").Bind(ognClientSettings);
-
-            services.AddOgnAnalyserServices(ognClientSettings);
         }
     }
 }

@@ -7,8 +7,9 @@ namespace OGNAnalyser.Client.Parser
 {
     public static class BeaconParser
     {
-        private static readonly Regex matcherAPRSBaseRegex = new Regex(@"(.+?)>APRS,(TCPIP\*,)?(q[A-U].),(.+?):|(\d{6})+h(\d{4}\.\d{2})(N|S).(\d{5}\.\d{2})(E|W).{0,2}((\d{3})|(\d{73}))?(\/[0-9]{3}\/)?A=(\d{6}).*?");
-        private static readonly Regex matcherAircraftBodyRegex = new Regex(@"(?:(?:\s\!W)([0-9]{2})(?:\!))?(?:\sid)([a-fA-F0-9]{8})(?:\s)([+-][0-9]{3,5})(?:fpm\s)([+-][0-9]\.[0-9])(?:rot\s)([0-9]{1,3}.[0-9])(?:dB\s)([0-9]{1,3})(?:e\s)([\+\-]?[0-9]{1,4}\.[0-9])(?:kHz\sgps)([0-9]{1,3})(?:x)([0-9]{1,3})(?:\s*)");
+        private static readonly Regex matcherAPRSBaseRegex = new Regex(@"([^>]+)>([^,]+),(TCPIP\*,)?(q[A-U].),(.+?)(?:\:[>/])([^\s]+)?");
+        private static readonly Regex matcherAPRSCoordsRegex = new Regex(@"(\d{6})+h(\d{4}\.\d{2})?(N|S)?(?:.)?(\d{5}\.\d{2})?(E|W)?(?:.)?(\d{3})?(?:.)?(\d{3})?(?:[^A]+)?(?:A=)?(\d{6})?");
+        private static readonly Regex matcherAircraftBodyRegex = new Regex(@"(?:(?:\s\!W)([0-9]{2})(?:\!))?(?:\sid)([a-fA-F0-9]{8})(?:\s)([+-][0-9]{3,5})(?:fpm\s)([+-][0-9]{1,2}\.[0-9])(?:rot\s)([0-9]{1,3}.[0-9])(?:dB\s)([0-9]{1,3})(?:e\s)([\+\-]?[0-9]{1,4}\.[0-9])(?:kHz)(?:\sgps)?([0-9]{1,3})?(?:x)?([0-9]{1,3})?(?:\s*)?");
         private static readonly Regex matcherReceiverBodyRegex = new Regex(@"(?: )(.)*");
 
         public static Beacon ParseBeacon(string receivedLine)
@@ -26,10 +27,10 @@ namespace OGNAnalyser.Client.Parser
                 {
                     var aprsMatches = matcherAPRSBaseRegex.Matches(receivedLine);
 
-                    if (aprsMatches.Count != 2)
+                    if (aprsMatches.Count != 1)
                         throw new BeaconParserException("APRS Base matcher failed.", receivedLine);
                     
-                    string beaconType = aprsMatches[0].Groups[3].Value;
+                    string beaconType = aprsMatches[0].Groups[4].Value;
 
                     switch (beaconType)
                     {
@@ -46,7 +47,10 @@ namespace OGNAnalyser.Client.Parser
                     }
 
                     ((IBaseAPRSBeacon)beacon).parseAPRSBaseData(aprsMatches[0].Groups);
-                    ((IGeographicPositionAndDateTime)beacon).parseCoords(aprsMatches[1].Groups);
+
+                    var coordsMatches = matcherAPRSCoordsRegex.Matches(aprsMatches[0].Groups[6].Value);
+                    ((IGeographicPositionAndDateTime)beacon).parseCoords(coordsMatches[0].Groups);
+
                     ((ConcreteBeacon)beacon).parseOgnConcreteBeacon(receivedLine);
                 }
                 else
@@ -72,27 +76,30 @@ namespace OGNAnalyser.Client.Parser
         private static void parseAPRSBaseData(this IBaseAPRSBeacon beacon, GroupCollection aprsBaseHeaderMatchGroup)
         {
             beacon.BeaconSender = aprsBaseHeaderMatchGroup[1].Value;
-            beacon.BeaconReceiver = aprsBaseHeaderMatchGroup[4].Value;
+            beacon.BeaconReceiver = aprsBaseHeaderMatchGroup[2].Value;
         }
 
         private static void parseCoords(this IGeographicPositionAndDateTime position, GroupCollection aprsBaseCoordsMatchGroup)
         {
             try
             {
-                position.PositionTimeUTC = DateTime.ParseExact($"{DateTime.Now:yyyyMMdd} {aprsBaseCoordsMatchGroup[5].Value}", "yyyyMMdd HHmmss", CultureInfo.InvariantCulture);
+                position.PositionTimeUTC = DateTime.ParseExact($"{DateTime.Now:yyyyMMdd} {aprsBaseCoordsMatchGroup[1].Value}", "yyyyMMdd HHmmss", CultureInfo.InvariantCulture);
+
+                if (string.IsNullOrWhiteSpace(aprsBaseCoordsMatchGroup[2].Value))
+                    return;
 
                 // lat (5111.32N)
-                position.PositionLatDegrees = parseAprsCoordValue(aprsBaseCoordsMatchGroup[6].Value);
-                if (aprsBaseCoordsMatchGroup[7].Value == "S")
+                position.PositionLatDegrees = parseAprsCoordValue(aprsBaseCoordsMatchGroup[2].Value);
+                if (aprsBaseCoordsMatchGroup[3].Value == "S")
                     position.PositionLatDegrees *= -1;
 
                 // lon (00102.04W)
-                position.PositionLonDegrees = parseAprsCoordValue(aprsBaseCoordsMatchGroup[8].Value);
-                if (aprsBaseCoordsMatchGroup[9].Value == "W")
+                position.PositionLonDegrees = parseAprsCoordValue(aprsBaseCoordsMatchGroup[4].Value);
+                if (aprsBaseCoordsMatchGroup[5].Value == "W")
                     position.PositionLonDegrees *= -1;
 
                 // Altitude
-                position.PositionAltitudeMeters = (int)Math.Round(int.Parse(aprsBaseCoordsMatchGroup[14].Value, CultureInfo.InvariantCulture) / 3.28084f);
+                position.PositionAltitudeMeters = (int)Math.Round(int.Parse(aprsBaseCoordsMatchGroup[8].Value, CultureInfo.InvariantCulture) / 3.28084f);
             }
             catch (Exception e)
             {
@@ -158,8 +165,11 @@ namespace OGNAnalyser.Client.Parser
                 beacon.CenterFrequencyOffsetKhz = (float)Math.Round(float.Parse(match.Groups[7].Value, CultureInfo.InvariantCulture), 1);
 
                 // gps visible/channels
-                beacon.GpsSatellitesVisible = int.Parse(match.Groups[8].Value, CultureInfo.InvariantCulture);
-                beacon.GpsSatelliteChannelsAvailable = int.Parse(match.Groups[9].Value, CultureInfo.InvariantCulture); 
+                if(match.Groups[8].Success && match.Groups[9].Success)
+                {
+                    beacon.GpsSatellitesVisible = int.Parse(match.Groups[8].Value, CultureInfo.InvariantCulture);
+                    beacon.GpsSatelliteChannelsAvailable = int.Parse(match.Groups[9].Value, CultureInfo.InvariantCulture);
+                }
             }
             catch (Exception e)
             {
@@ -169,7 +179,10 @@ namespace OGNAnalyser.Client.Parser
 
         private static void parseOgnReceiverData(this ReceiverBeacon beacon, string receivedLine)
         {
-            beacon.SystemInfo = matcherReceiverBodyRegex.Matches(receivedLine)[0].Value.Trim();
+            var systemInfoMatches = matcherReceiverBodyRegex.Matches(receivedLine);
+
+            if(systemInfoMatches.Count > 0)
+                beacon.SystemInfo = systemInfoMatches[0].Value.Trim();
         }
 
         

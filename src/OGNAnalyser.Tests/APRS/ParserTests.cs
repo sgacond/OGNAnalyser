@@ -17,7 +17,10 @@ namespace OGNAnalyser.Tests.APRS
         [InlineData("AbtwilSG>APRS,TCPIP*,qAC,GLIDERN2:/075629h4725.20NI00918.58E&000/000/A=002234 v0.2.4.ARM CPU:0.5 RAM:747.9/970.9MB NTP:0.2ms/-3.0ppm +35.8C RF:+0.46dB")]
         [InlineData("Niederurn>APRS,TCPIP*,qAC,GLIDERN1:/075634h4707.48NI00903.33E&000/000/A=002821 v0.2.4.ARM CPU:0.7 RAM:774.5/972.2MB NTP:0.6ms/-8.0ppm +32.6C RF:+0.77dB")]
         [InlineData("EDNE>APRS,TCPIP*,qAC,GLIDERN2:/075642h4820.54NI00954.83E&000/000/A=001588 v0.2.4.RPI-GPU CPU:1.0 RAM:194.7/455.7MB NTP:12.1ms/-9.3ppm +48.7C RF:+2.46dB")]
-        [InlineData("BachtelN>APRS,TCPIP*,qAC,GIGA01:/125043h4716.85NI00852.79E&/A=002486 v0.2.2 CPU:0.9 RAM:273.0/456.5MB NTP:0.6ms/-11.6ppm +40.1C RF:+13.71dB")]
+        [InlineData("LSZL>APRS,TCPIP*,qAC,GLIDERN1:>133647h v0.2.6.RPI-GPU CPU:0.8 RAM:788.5/972.4MB NTP:2.1ms/-5.9ppm +60.1C 4/4Acfts[1h] RF:+0+0.7ppm/+3.44dB/+5.7dB@10km[1214]/+4.6dB@10km[2/3]")]
+        [InlineData("Elm>APRS,TCPIP*,qAC,GLIDERN2:/133104h4654.98NI00910.14E&/A=003283")] // no version infos
+        [InlineData("LSZF>OGNSDR,TCPIP*,qAC,GLIDERN3:>143530h v0.2.7.RPI-GPU CPU:0.6 RAM:702.5/968.2MB NTP:0.8ms/-4.4ppm +34.2C 0/0Acfts[1h] RF:+44+1.6ppm/-0.59dB/+14.8dB@10km[2348011]/+14.0dB@10km[5 / 9]")]
+        [InlineData("LSZX >APRS,TCPIP*,qAC,GLIDERN2:>143541h v0.2.6.ARM CPU:0.7")]
         // aircraft
         [InlineData("ICA4B43C0>APRS,qAS,SoloStdby:/075618h4656.87N/00711.99EX331/118/A=004946 !W67! id0D4B43C0 -039fpm +0.0rot 8.0dB 0e +1.1kHz gps2x3")]
         [InlineData("FLRDDA617>APRS,qAS,Rigi:/075620h4700.13N/00819.58EX332/129/A=002460 !W87! id0EDDA617 +238fpm +0.1rot 10.0dB 1e -1.2kHz gps3x4")]
@@ -27,10 +30,13 @@ namespace OGNAnalyser.Tests.APRS
         [InlineData("FLRDD0525>APRS,qAS,Rigi:/125048h4658.64N/00844.88E'282/067/A=002732 !W12! id06DD0525 +1307fpm +0.1rot 7.2dB 0e +6.3kHz gps3x4")]
         [InlineData("FLRDD0525>APRS,qAS,Rigi:/125144h4659.38N/00843.74E'027/076/A=004097 !W65! id06DD0525 +1663fpm +0.2rot 8.8dB 0e +6.0kHz gps4x5")]
         [InlineData("FLRDD0525>APRS,qAS,LSZKWest:/130334h4719.58N/00842.57E'315/100/A=002916 id06DD0525 -118fpm +0.0rot 15.5dB 0e -12.0kHz gps3x3")]
+        [InlineData("FLR11018F>APRS,qAS,Cimetta:/130807h4611.96N/00847.49Eg000/000/A=005461 !W42! id1A11018F -336fpm +0.0rot 23.5dB 0e -1.4kHz")] // no gps info
+        [InlineData("FLR11018F>APRS,qAS,Cimetta:/130709h4611.88N/00847.58Eg000/000/A=005461 !W88! id1A11018F +158fpm +0.0rot 9.2dB 2e -1.0kHz")]
+        [InlineData("ICA4B43CE>APRS,qAS,LSTZ:/143448h4633.31N/00722.78EX234/003/A=003080 !W26! id0D4B43CE -138fpm +1.1rot 43.5dB 0e +11.0kHz gps3x5")]
+        [InlineData("ICA4B43D0>OGFLR,qAS,Letzi:/143607h4656.07N/00828.79EX000/000/A=005455 !W98! id0D4B43D0 +020fpm +0.0rot 3.8dB 4e -2.1kHz gps2x3")]
+        [InlineData("ICA4B43D6>APRS,qAS,Ragaz:/153144h4705.32N/00918.23EX234/001/A=004057 !W81! id0D4B43D6 +495fpm -15.0rot 4.5dB 2e -2.1kHz gps2x3 +9.4dBm")]
         public void ParserDoesNotCrash(string receivedLine)
         {
-            // Assert.DoesNotThrow not available in xunit.
-            // test fails anyway if it throws: https://github.com/xunit/xunit/issues/188
             var beacon = BeaconParser.ParseBeacon(receivedLine);
             Assert.IsAssignableFrom<Beacon>(beacon);
         }
@@ -66,7 +72,7 @@ namespace OGNAnalyser.Tests.APRS
             Assert.IsAssignableFrom<ReceiverBeacon>(beacon);
             var recBecon = (ReceiverBeacon)beacon;
 
-            Assert.Equal("GLIDERN2", recBecon.RegistredNetwork);
+            Assert.Equal("APRS", recBecon.BeaconReceiver);
             Assert.Equal(47.42d, recBecon.PositionLatDegrees); //47° 25.20 Minutes in degrees
             Assert.Equal(9.30966667d, recBecon.PositionLonDegrees);  // 9° 18.58 Minutes in degrees
             Assert.Equal(681, recBecon.PositionAltitudeMeters); // 2234 feet in meters

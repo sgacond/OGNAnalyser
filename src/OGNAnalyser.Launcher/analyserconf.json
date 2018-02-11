@@ -1,4 +1,14 @@
 ﻿{
+  "Logging": {
+    "IncludeScopes": false,
+    "Debug": {
+      "LogLevel": {
+        "Default": "Debug",
+        "System": "Information",
+        "Microsoft": "Information"
+      }
+    }
+  },
   "client": {
     "ognServer": "glidern1.glidernet.org",
     "ognUsername": "sgtest",

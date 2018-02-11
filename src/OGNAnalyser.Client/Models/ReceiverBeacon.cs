@@ -15,7 +15,6 @@ namespace OGNAnalyser.Client.Models
         public override BeaconType BeaconType { get { return BeaconType.Receiver; } }
 
         public string ReceiverName { get { return BeaconSender; } }
-        public string RegistredNetwork { get { return BeaconReceiver; } }
 
         public double PositionLatDegrees { get; set; }
         public double PositionLonDegrees { get; set; }

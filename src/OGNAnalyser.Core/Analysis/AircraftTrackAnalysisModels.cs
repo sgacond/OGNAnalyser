@@ -81,8 +81,7 @@ namespace OGNAnalyser.Core.Analysis
 
         internal void FireEventDetected(AircraftTrackEvent evt)
         {
-            if (EventDetected != null)
-                EventDetected(evt);
+            EventDetected?.Invoke(evt);
         }
     }
 }
