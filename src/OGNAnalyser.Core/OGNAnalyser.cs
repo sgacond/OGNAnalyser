@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OGNAnalyser.Client;
 using OGNAnalyser.Core.Analysis;
 using Microsoft.Extensions.Logging.Abstractions;
+using OGNAnalyser.Client.Models;
 
 namespace OGNAnalyser.Core
 {
@@ -59,5 +60,8 @@ namespace OGNAnalyser.Core
 
             _log.LogInformation("OGN Analyser stopped.");
         }
+
+        public void SubscribeAirfieldForMovementEvents(string airfieldKey, IGeographicPosition airfieldPosition, Action<AircraftTrackEvent> eventDetectedCallback = null)
+            => _analyser.SubscribeAirfieldForMovmentEvents(airfieldKey, airfieldPosition, eventDetectedCallback);
     }
 }

@@ -1,10 +1,5 @@
-﻿using OGNAnalyser.Client.Models;
+﻿using OGNAnalyser.Core;
 using OGNAnalyser.Core.Util;
-using OGNAnalyser.Tests.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace OGNAnalyser.Tests.Analyser
@@ -20,8 +15,8 @@ namespace OGNAnalyser.Tests.Analyser
         [InlineData(47.1717d, 9.0394d, 47.1939d, 2.0653d, 526898d)] // schaenis / vierzon mereau (west)
         public void DistanceToGeoPositionMatches(double lat1, double lon1, double lat2, double lon2, double expectedDistanceMeters)
         {
-            var geoPos1 = new SimpleGeoPos { PositionLatDegrees = lat1, PositionLonDegrees = lon1 };
-            var geoPos2 = new SimpleGeoPos { PositionLatDegrees = lat2, PositionLonDegrees = lon2 };
+            var geoPos1 = new SimpleGeographicPosition { PositionLatDegrees = lat1, PositionLonDegrees = lon1 };
+            var geoPos2 = new SimpleGeographicPosition { PositionLatDegrees = lat2, PositionLonDegrees = lon2 };
             Assert.Equal(expectedDistanceMeters, geoPos1.DistanceToGeoPositionMeters(geoPos2));
         }
 
@@ -34,8 +29,8 @@ namespace OGNAnalyser.Tests.Analyser
         [InlineData(47.1717d, 9.0394d, 47.1939d, 2.0653d, 272.8f)] // schaenis / vierzon mereau (west)
         public void InitialBearingToGeoPositionMatches(double lat1, double lon1, double lat2, double lon2, float expectedInitialBearingDegrees)
         {
-            var geoPos1 = new SimpleGeoPos { PositionLatDegrees = lat1, PositionLonDegrees = lon1 };
-            var geoPos2 = new SimpleGeoPos { PositionLatDegrees = lat2, PositionLonDegrees = lon2 };
+            var geoPos1 = new SimpleGeographicPosition { PositionLatDegrees = lat1, PositionLonDegrees = lon1 };
+            var geoPos2 = new SimpleGeographicPosition { PositionLatDegrees = lat2, PositionLonDegrees = lon2 };
             Assert.Equal(expectedInitialBearingDegrees, geoPos1.InitialBearingToGeoPositionDegrees(geoPos2));
         }
     }

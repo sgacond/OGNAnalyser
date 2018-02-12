@@ -1,8 +1,8 @@
 ﻿using OGNAnalyser.Client.Models;
 using OGNAnalyser.Client.Parser;
+using OGNAnalyser.Core;
 using OGNAnalyser.Core.Analysis;
 using OGNAnalyser.Core.Util;
-using OGNAnalyser.Tests.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +13,9 @@ namespace OGNAnalyser.Tests.Analyser
 {
     public class TrackAnalysisTests
     {
-        private static readonly Dictionary<string, SimpleGeoPos> testAirfields = new Dictionary<string, SimpleGeoPos> {
-                { "schaenis",  new SimpleGeoPos { PositionLatDegrees = 47.1717d, PositionLonDegrees = 9.0394d, PositionAltitudeMeters = 416 }},
-                { "puimoisson",  new SimpleGeoPos { PositionLatDegrees = 43.869867d, PositionLonDegrees = 6.168967d, PositionAltitudeMeters = 820 }} };
+        private static readonly Dictionary<string, SimpleGeographicPosition> testAirfields = new Dictionary<string, SimpleGeographicPosition> {
+                { "schaenis",  new SimpleGeographicPosition { PositionLatDegrees = 47.1717d, PositionLonDegrees = 9.0394d, PositionAltitudeMeters = 416 }},
+                { "puimoisson",  new SimpleGeographicPosition { PositionLatDegrees = 43.869867d, PositionLonDegrees = 6.168967d, PositionAltitudeMeters = 820 }} };
         
         [Theory]
         [InlineData("Data\\54oz5of2_Landing.igc", "schaenis", 316, AircraftTrackEventTypes.Landing)]

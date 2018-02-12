@@ -9,14 +9,28 @@
       }
     }
   },
-  "client": {
-    "ognServer": "glidern1.glidernet.org",
-    "ognUsername": "sgtest",
-    "ognPort": 14580,
-    "filter": {
-      "centerLatDegrees": 47.170869,
-      "centerLonDegrees": 9.039742,
-      "radiusKm": 150
+  "client1": {
+    "analyser": {
+      "ognServer": "glidern1.glidernet.org",
+      "ognUsername": "sgtest",
+      "ognPort": 14580,
+      "filter": {
+        "centerLatDegrees": 47.170869,
+        "centerLonDegrees": 9.039742,
+        "radiusKm": 150
+      }
+    },
+    "airfields": {
+      "lszx": {
+        "lat": 47.173484,
+        "lon": 9.0379144,
+        "alt": 416
+      },
+      "lszk": {
+        "lat": 47.3763925,
+        "lon": 8.755306,
+        "alt": 536
+      }
     }
   }
 }

@@ -41,12 +41,24 @@ namespace OGNAnalyser.Launcher
             IDictionary<uint, AircraftBeaconSpeedAndTrack> beaconDisplayBuffer = null;
             var events = new Dictionary<string, List<AircraftTrackEvent>>();
 
-            // disposable pattern to stop on read-line.
             var factory = sp.GetService<OGNAnalyserFactory>();
-            using (var analyser = factory.CreateOGNAnalyser(settings => config.GetSection("client").Bind(settings)))
+            var analyserConfigSection = config.GetSection("client1");
+            using (var analyser = factory.CreateOGNAnalyser(settings => analyserConfigSection.GetSection("analyser").Bind(settings)))
             {
                 AttachConsoleDisplay(beaconDisplayBuffer, events, analyser);
+
+                foreach(var airfield in analyserConfigSection.GetSection("airfields").GetChildren())
+                {
+                    analyser.SubscribeAirfieldForMovementEvents(airfield.Key, new SimpleGeographicPosition
+                    {
+                        PositionLatDegrees = airfield.GetValue<double>("lat"),
+                        PositionLonDegrees = airfield.GetValue<double>("lon"),
+                        PositionAltitudeMeters = airfield.GetValue<int>("alt")
+                    });
+                }
+
                 analyser.Run();
+
                 Console.ReadLine();
             }
         }
