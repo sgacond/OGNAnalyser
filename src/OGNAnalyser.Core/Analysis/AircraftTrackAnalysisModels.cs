@@ -74,6 +74,11 @@ namespace OGNAnalyser.Core.Analysis
 
     internal class AirfieldSubscription
     {
+        public AirfieldSubscription()
+        {
+            Events = new List<AircraftTrackEvent>();
+        }
+
         public string AirfieldKey { get; internal set; }
         public IGeographicPosition AirfieldPosition { get; internal set; }
         public List<AircraftTrackEvent> Events { get; internal set; }
